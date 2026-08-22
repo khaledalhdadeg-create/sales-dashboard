@@ -1,6 +1,8 @@
 import streamlit as st
 import json
 import os
+import calendar
+from datetime import datetime
 
 # Page Configuration
 st.set_page_config(page_title="stc Sales Incentive Calculator", layout="wide", page_icon="📱")
@@ -80,54 +82,59 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Admin Sidebar
-st.sidebar.markdown("<h2 style='color: #4F008C;'>⚙️ Admin Target Settings</h2>", unsafe_allow_html=True)
+# -------------------------------------------------------------
+# Admin Sidebar (مخفي داخل قائمة منسدلة مغلقة تلقائياً)
+# -------------------------------------------------------------
+with st.sidebar.expander("⚙️ Admin Target Settings", expanded=False):
+    ADMIN_PASSWORD = "CHV4"
+    admin_pwd = st.text_input("Enter Admin Password:", type="password")
 
-ADMIN_PASSWORD = "CHV4"
-admin_pwd = st.sidebar.text_input("Enter Admin Password:", type="password")
-
-if admin_pwd == ADMIN_PASSWORD:
-    st.sidebar.success("Unlocked: Admin Mode")
-    
-    with st.sidebar.form("admin_target_form"):
-        new_ga_voice = st.number_input("Target GA Voice:", value=int(current_targets["target_ga_voice"]))
-        new_ga_data = st.number_input("Target GA Data:", value=int(current_targets["target_ga_data"]))
-        new_renew_voice = st.number_input("Target Renewal Voice:", value=int(current_targets["target_renew_voice"]))
-        new_renew_data = st.number_input("Target Renewal Data:", value=int(current_targets["target_renew_data"]))
-        new_zeed = st.number_input("Target Zeed:", value=int(current_targets["target_zeed"]))
+    if admin_pwd == ADMIN_PASSWORD:
+        st.success("Unlocked: Admin Mode")
         
-        save_btn = st.form_submit_button("💾 Save Targets For All Users")
-        
-        if save_btn:
-            updated_data = {
-                "target_ga_voice": new_ga_voice,
-                "target_ga_data": new_ga_data,
-                "target_renew_voice": new_renew_voice,
-                "target_renew_data": new_renew_data,
-                "target_zeed": new_zeed
-            }
-            save_targets(updated_data)
-            st.sidebar.success("✅ Targets updated globally!")
-            st.rerun()
+        with st.form("admin_target_form"):
+            new_ga_voice = st.number_input("Target GA Voice:", value=int(current_targets["target_ga_voice"]))
+            new_ga_data = st.number_input("Target GA Data:", value=int(current_targets["target_ga_data"]))
+            new_renew_voice = st.number_input("Target Renewal Voice:", value=int(current_targets["target_renew_voice"]))
+            new_renew_data = st.number_input("Target Renewal Data:", value=int(current_targets["target_renew_data"]))
+            new_zeed = st.number_input("Target Zeed:", value=int(current_targets["target_zeed"]))
+            
+            save_btn = st.form_submit_button("💾 Save Targets For All Users")
+            
+            if save_btn:
+                updated_data = {
+                    "target_ga_voice": new_ga_voice,
+                    "target_ga_data": new_ga_data,
+                    "target_renew_voice": new_renew_voice,
+                    "target_renew_data": new_renew_data,
+                    "target_zeed": new_zeed
+                }
+                save_targets(updated_data)
+                st.success("✅ Targets updated globally!")
+                st.rerun()
 
-    target_ga_voice = current_targets["target_ga_voice"]
-    target_ga_data = current_targets["target_ga_data"]
-    target_renew_voice = current_targets["target_renew_voice"]
-    target_renew_data = current_targets["target_renew_data"]
-    target_zeed = current_targets["target_zeed"]
-else:
-    st.sidebar.info("🔒 Targets Locked (View Mode)")
-    target_ga_voice = current_targets["target_ga_voice"]
-    target_ga_data = current_targets["target_ga_data"]
-    target_renew_voice = current_targets["target_renew_voice"]
-    target_renew_data = current_targets["target_renew_data"]
-    target_zeed = current_targets["target_zeed"]
-    
-    st.sidebar.text(f"Target GA Voice: {target_ga_voice}")
-    st.sidebar.text(f"Target GA Data: {target_ga_data}")
-    st.sidebar.text(f"Target Renewal Voice: {target_renew_voice}")
-    st.sidebar.text(f"Target Renewal Data: {target_renew_data}")
-    st.sidebar.text(f"Target Zeed: {target_zeed}")
+        target_ga_voice = current_targets["target_ga_voice"]
+        target_ga_data = current_targets["target_ga_data"]
+        target_renew_voice = current_targets["target_renew_voice"]
+        target_renew_data = current_targets["target_renew_data"]
+        target_zeed = current_targets["target_zeed"]
+    else:
+        if admin_pwd != "":
+            st.error("🔒 Incorrect Password")
+        else:
+            st.info("🔒 Targets Locked (View Mode)")
+            
+        target_ga_voice = current_targets["target_ga_voice"]
+        target_ga_data = current_targets["target_ga_data"]
+        target_renew_voice = current_targets["target_renew_voice"]
+        target_renew_data = current_targets["target_renew_data"]
+        target_zeed = current_targets["target_zeed"]
+        
+        st.text(f"Target GA Voice: {target_ga_voice}")
+        st.text(f"Target GA Data: {target_ga_data}")
+        st.text(f"Target Renewal Voice: {target_renew_voice}")
+        st.text(f"Target Renewal Data: {target_renew_data}")
+        st.text(f"Target Zeed: {target_zeed}")
 
 st.sidebar.markdown("---")
 
@@ -284,9 +291,6 @@ st.markdown(f"""
 # -------------------------------------------------------------
 # ميزة حاسبة Target اليومية (Daily Run-Rate Tracker - Automatic Date)
 # -------------------------------------------------------------
-import calendar
-from datetime import datetime
-
 st.markdown("---")
 st.markdown("### 📈 Daily Target Tracker")
 
@@ -325,7 +329,6 @@ for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
 st.markdown("---")
 st.markdown("### 📋 Operational KPIs Score Breakdown (20%)")
 
-# تجهيز بيانات الجدول
 kpi_data = [
     {"KPI": "STC Care", "Achieved Score": f"{kpi1*100:.0f}%", "Min Threshold": "60%", "Earned Weight": f"{kpi1_w*100:.2f}%", "Status": "✅ Qualified" if kpi1 >= 0.60 else "❌ Below Threshold"},
     {"KPI": "W&P", "Achieved Score": f"{kpi2*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi2_w*100:.2f}%", "Status": "✅ Qualified" if kpi2 >= 0.75 else "❌ Below Threshold"},
@@ -333,12 +336,8 @@ kpi_data = [
     {"KPI": "MNP", "Achieved Score": f"{kpi4*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi4_w*100:.2f}%", "Status": "✅ Qualified" if kpi4 >= 0.75 else "❌ Below Threshold"},
 ]
 
-# عرض التفاصيل في جدول منظم
 st.table(kpi_data)
-
 st.caption(f"💡 Total KPI Contribution to Final Achievement Weight: **{total_kpi_weight*100:.1f}% / 20.0%**")
-
-#
 
 # -------------------------------------------------------------
 # ميزة النصائح والتنبيهات الذكية (Smart Sales Insights - Arabic & English)
@@ -405,7 +404,7 @@ for prod, weight in weighted_ach.items():
             if weight < t:
                 needed_raw = (t - total_kpi_weight) / 0.8
                 needed_units = int(needed_raw * tgt) - ach + 1
-                if 0 < needed_units <= 5:  # إذا كان المتبقي 5 خطوط أو أقل
+                if 0 < needed_units <= 5:
                     insights.append((
                         "success",
                         f"🔥 **Near Next Tier ({prod}) | قريب من الشريحة التالية:**<br>"
