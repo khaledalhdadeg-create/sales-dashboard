@@ -122,17 +122,16 @@ st.markdown("""
 # دالة رسم شريط التقدم المرئي
 def render_progress_bar(ratio):
     pct = ratio * 100
-    display_pct = min(pct, 100)  # أقصى كبر لشريط التقدم 100%
+    display_pct = min(pct, 100)
     
-    # تحديد اللون بناءً على النسبة
     if pct < 75:
-        color = "linear-gradient(90deg, #EA4335, #D93025)" # أحمر
+        color = "linear-gradient(90deg, #EA4335, #D93025)"
     elif pct < 100:
-        color = "linear-gradient(90deg, #FBBC04, #F9AB00)" # برتقالي
+        color = "linear-gradient(90deg, #FBBC04, #F9AB00)"
     elif pct < 120:
-        color = "linear-gradient(90deg, #34A853, #188038)" # أخضر
+        color = "linear-gradient(90deg, #34A853, #188038)"
     else:
-        color = "linear-gradient(90deg, #FF007A, #4F008C)" # stc Pink to Purple (تجاوز ممتاز)
+        color = "linear-gradient(90deg, #FF007A, #4F008C)"
         
     st.markdown(f"""
         <div class="progress-wrapper">
@@ -431,8 +430,8 @@ for prod, weight in weighted_ach.items():
                 if 0 < needed_units <= 5:
                     insights.append({
                         "style": "insight-success",
-                        "en": f"🔥 <b>Near Next Tier ({prod}):</b> You are just <b>{needed_units} unit(s)</b> away from unlocking the <b>{int(t*100)}%</b> tier payout!",
-                        "ar": f"🔥 <b>قريب من الشريحة التالية:</b> باقي لك <b>{needed_units} خط/خطوط</b> فقط في ({prod}) للوصول لشريحة <b>{int(t*100)}%</b>!"
+                        "en": f"🔥 <b>Near Next Tier ({prod}):</b> You are just <b>{needed_units} transaction(s)</b> away from unlocking the <b>{int(t*100)}%</b> tier payout!",
+                        "ar": f"🔥 <b>قريب من الشريحة التالية:</b> باقي لك <b>{needed_units} معاملة/معاملات</b> فقط في ({prod}) للوصول لشريحة <b>{int(t*100)}%</b>!"
                     })
                 break
 
