@@ -4,7 +4,7 @@ import os
 import calendar
 from datetime import datetime
 
-# Page Configuration (تمت إضافات إخفاء القائمة الجانبية عند الفتح)
+# Page Configuration
 st.set_page_config(
     page_title="stc Sales Incentive Calculator", 
     layout="wide", 
@@ -41,12 +41,21 @@ def save_targets(data):
 # تحميل الأرقام الحالية للجميع
 current_targets = load_targets()
 
-# Custom CSS
+# Custom CSS (تضمين إخفاء القائمة الجانبية وتنسيق النصوص)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     .stApp { background-color: #F8F9FA; }
+    
+    /* إخفاء القائمة الجانبية وزر الفتح افتراضياً بشكل كامل */
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+    [data-testid="collapsedControl"] {
+        display: none;
+    }
+    
     .stc-header {
         background: linear-gradient(135deg, #4F008C 0%, #33005A 100%);
         color: white; padding: 24px 30px; border-radius: 16px;
@@ -56,23 +65,39 @@ st.markdown("""
     .stc-header h1 { color: #FFFFFF !important; font-weight: 800; margin: 0; font-size: 24px; }
     .stc-header p { color: #E2D1F0; margin: 5px 0 0 0; font-size: 13px; }
     .stc-badge { background-color: #FF007A; color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 12px; }
-    section[data-testid="stSidebar"] { background-color: #FFFFFF; border-right: 2px solid #EFEFEF; }
+    
     div[data-testid="stMetric"] {
         background-color: #FFFFFF; border: 1px solid #EBE2F2; border-radius: 14px; padding: 12px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-top: 4px solid #4F008C;
     }
     div[data-testid="stMetricValue"] { color: #4F008C !important; font-weight: 800; font-size: 20px !important; }
     h2, h3 { color: #4F008C !important; font-weight: 700; }
+    
     .status-card { padding: 15px 20px; border-radius: 12px; font-weight: bold; text-align: center; font-size: 16px; margin-bottom: 20px; }
     .status-standard { background-color: #E6F4EA; color: #137333; border: 1px solid #CEEAD6; }
     .status-bonus { background-color: #FEF7E0; color: #B06000; border: 1px solid #FEEFC3; }
     .status-ineligible { background-color: #FCE8E6; color: #C5221F; border: 1px solid #FAD2CF; }
+    
     .total-card {
         background: linear-gradient(135deg, #FF007A 0%, #C4005E 100%);
         color: white; padding: 22px; border-radius: 16px; text-align: center;
         box-shadow: 0 8px 20px rgba(255, 0, 122, 0.25);
     }
     .total-card h2 { color: white !important; margin: 0; font-size: 34px; }
+    
+    /* تنسيق كروت النصائح لفصل العربي والإنجليزي */
+    .insight-box {
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    .insight-warning { background-color: #FFF3CD; border-left: 5px solid #FFC107; color: #856404; }
+    .insight-error { background-color: #F8D7DA; border-left: 5px solid #DC3545; color: #721C24; }
+    .insight-info { background-color: #D1ECF1; border-left: 5px solid #17A2B8; color: #0C5460; }
+    .insight-success { background-color: #D4EDDA; border-left: 5px solid #28A745; color: #155724; }
+    
+    .text-en { font-weight: 600; direction: ltr; text-align: left; margin-bottom: 6px; }
+    .text-ar { font-weight: 600; direction: rtl; text-align: right; margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -88,7 +113,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# Admin Sidebar (مخفي داخل قائمة منسدلة)
+# Admin Sidebar
 # -------------------------------------------------------------
 with st.sidebar.expander("⚙️ Admin Target Settings", expanded=False):
     ADMIN_PASSWORD = "CHV4"
@@ -134,14 +159,6 @@ with st.sidebar.expander("⚙️ Admin Target Settings", expanded=False):
         target_renew_voice = current_targets["target_renew_voice"]
         target_renew_data = current_targets["target_renew_data"]
         target_zeed = current_targets["target_zeed"]
-        
-        st.text(f"Target GA Voice: {target_ga_voice}")
-        st.text(f"Target GA Data: {target_ga_data}")
-        st.text(f"Target Renewal Voice: {target_renew_voice}")
-        st.text(f"Target Renewal Data: {target_renew_data}")
-        st.text(f"Target Zeed: {target_zeed}")
-
-st.sidebar.markdown("---")
 
 # Layout Inputs
 main_col1, main_col2 = st.columns([1.2, 1])
@@ -289,12 +306,12 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown(f"""
     <div class="total-card">
         <p style="margin: 0; font-size: 15px; opacity: 0.9;">Total Final Payout</p>
-        <h2>{total_final_payout:.2f} KD</h2>
+        2 <h2 style="display:inline;">{total_final_payout:.2f} KD</h2>
     </div>
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# ميزة حاسبة Target اليومية (Daily Run-Rate Tracker - Automatic Date)
+# Daily Target Tracker
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📈 Daily Target Tracker")
@@ -327,7 +344,7 @@ for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
         st.metric("Needed / Day", f"{daily_req:.1f}")
 
 # -------------------------------------------------------------
-# ميزة تفصيل نقاط الـ KPIs (KPI Weight Breakdown)
+# KPI Weight Breakdown
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📋 Operational KPIs Score Breakdown (20%)")
@@ -343,7 +360,7 @@ st.table(kpi_data)
 st.caption(f"💡 Total KPI Contribution to Final Achievement Weight: **{total_kpi_weight*100:.1f}% / 20.0%**")
 
 # -------------------------------------------------------------
-# ميزة النصائح والتنبيهات الذكية (Smart Sales Insights - Arabic & English)
+# Smart Sales Insights & Advice (فصل لغوي تام)
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية")
@@ -353,19 +370,17 @@ insights = []
 # 1. فحص التأهل للعمولة
 if min_weighted_ach < 0.75 and avg_weighted_ach >= 0.75:
     weak_prods = [prod for prod, ach in weighted_ach.items() if ach < 0.75]
-    insights.append((
-        "warning",
-        f"⚠️ **Boost Standard Eligibility | تحسين استحقاق الشرائح الأساسية:**<br>"
-        f"You qualify for **Bonus Scheme** because these products are below 75%: **{', '.join(weak_prods)}**.<br>"
-        f"أنت مؤهل حالياً لعمولة الـ Bonus لأن هذه المنتجات أقل من 75%: **{', '.join(weak_prods)}**. ارفعها لـ 75% لتأهل للعمولة الأساسية الأعلى!"
-    ))
+    insights.append({
+        "style": "insight-warning",
+        "en": f"⚠️ <b>Boost Standard Eligibility:</b> You qualify for <b>Bonus Scheme</b> because these products are below 75%: <b>{', '.join(weak_prods)}</b>.",
+        "ar": f"⚠️ <b>تحسين استحقاق الشرائح الأساسية:</b> أنت مؤهل حالياً لعمولة الـ Bonus لأن هذه المنتجات أقل من 75%: <b>{', '.join(weak_prods)}</b>. ارفعها لـ 75% لتتأهل للعمولة الأساسية الأعلى!"
+    })
 elif min_weighted_ach < 0.75 and avg_weighted_ach < 0.75:
-    insights.append((
-        "error",
-        "🔴 **Ineligible Warning | تنبيه عدم الاستحقاق:**<br>"
-        "Your Minimum Weighted Achievement and Average are below 75%. Focus on raising all product achievements above 75% to get paid.<br>"
-        "نسبة الإنجاز الأدنى والمعدل أقل من 75%. ركز على رفع جميع المنتجات لأعلى من 75% لتستحق العمولة."
-    ))
+    insights.append({
+        "style": "insight-error",
+        "en": "🔴 <b>Ineligible Warning:</b> Your Minimum Weighted Achievement and Average are below 75%. Focus on raising all product achievements above 75% to get paid.",
+        "ar": "🔴 <b>تنبيه عدم الاستحقاق:</b> نسبة الإنجاز الأدنى والمعدل أقل من 75%. ركز على رفع جميع المنتجات لأعلى من 75% لتستحق العمولة."
+    })
 
 # 2. فحص الـ KPIs المؤثرة
 failed_kpis = []
@@ -375,12 +390,11 @@ if kpi3 < 0.75: failed_kpis.append("Accessories (Needs ≥ 75%)")
 if kpi4 < 0.75: failed_kpis.append("MNP (Needs ≥ 75%)")
 
 if failed_kpis:
-    insights.append((
-        "info",
-        f"🎯 **KPI Opportunity | فرصة تحسين الـ KPIs:**<br>"
-        f"Improve the following KPIs to gain full weight: **{', '.join(failed_kpis)}**.<br>"
-        f"قم بتحسين مؤشرات الأداء التالية لتحصل على الوزن الكامل للـ KPIs: **{', '.join(failed_kpis)}**."
-    ))
+    insights.append({
+        "style": "insight-info",
+        "en": f"🎯 <b>KPI Opportunity:</b> Improve the following KPIs to gain full weight: <b>{', '.join(failed_kpis)}</b>.",
+        "ar": f"🎯 <b>فرصة تحسين الـ KPIs:</b> قم بتحسين مؤشرات الأداء التالية لتحصل على الوزن الكامل للـ KPIs: <b>{', '.join(failed_kpis)}</b>."
+    })
 
 # 3. فحص الفرص المتاحة للانتقال لشرائح أعلى في المبيعات
 thresholds = [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40]
@@ -408,24 +422,26 @@ for prod, weight in weighted_ach.items():
                 needed_raw = (t - total_kpi_weight) / 0.8
                 needed_units = int(needed_raw * tgt) - ach + 1
                 if 0 < needed_units <= 5:
-                    insights.append((
-                        "success",
-                        f"🔥 **Near Next Tier ({prod}) | قريب من الشريحة التالية:**<br>"
-                        f"You are just **{needed_units} unit(s)** away from unlocking the **{int(t*100)}%** tier payout!<br>"
-                        f"باقي لك **{needed_units} خط/خطوط** فقط للوصول لشريحة **{int(t*100)}%** في عمولة {prod}!"
-                    ))
+                    insights.append({
+                        "style": "insight-success",
+                        "en": f"🔥 <b>Near Next Tier ({prod}):</b> You are just <b>{needed_units} unit(s)</b> away from unlocking the <b>{int(t*100)}%</b> tier payout!",
+                        "ar": f"🔥 <b>قريب من الشريحة التالية:</b> باقي لك <b>{needed_units} خط/خطوط</b> فقط في ({prod}) للوصول لشريحة <b>{int(t*100)}%</b>!"
+                    })
                 break
 
-# عرض التنبيهات
+# عرض النصائح في حاويات HTML مفصولة
 if insights:
-    for category, message in insights:
-        if category == "warning":
-            st.warning(message, icon="⚠️")
-        elif category == "error":
-            st.error(message, icon="🔴")
-        elif category == "info":
-            st.info(message, icon="🎯")
-        elif category == "success":
-            st.success(message, icon="🔥")
+    for item in insights:
+        st.markdown(f"""
+            <div class="insight-box {item['style']}">
+                <div class="text-en">{item['en']}</div>
+                <div class="text-ar">{item['ar']}</div>
+            </div>
+        """, unsafe_allow_html=True)
 else:
-    st.success("🌟 **Great Job!** All your metrics and targets are running at maximum performance!<br>عمل ممتاز! جميع أرقامك ومؤشراتك تعمل بأعلى مستوى أداء!", icon="🌟")
+    st.markdown("""
+        <div class="insight-box insight-success">
+            <div class="text-en">🌟 <b>Great Job!</b> All your metrics and targets are running at maximum performance!</div>
+            <div class="text-ar">🌟 <b>عمل ممتاز!</b> جميع أرقامك ومؤشراتك تعمل بأعلى مستوى أداء!</div>
+        </div>
+    """, unsafe_allow_html=True)
