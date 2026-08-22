@@ -280,3 +280,38 @@ st.markdown(f"""
         <h2>{total_final_payout:.2f} KD</h2>
     </div>
 """, unsafe_allow_html=True)
+
+# -------------------------------------------------------------
+# ميزة حاسبة Target اليومية (Daily Run-Rate Tracker)
+# -------------------------------------------------------------
+st.markdown("---")
+st.markdown("### 📈 Daily Target Tracker")
+
+col_day1, col_day2 = st.columns(2)
+with col_day1:
+    current_day = st.number_input("Current Day of Month:", min_value=1, max_value=31, value=15)
+with col_day2:
+    total_days = st.number_input("Total Days in Month:", min_value=28, max_value=31, value=30)
+
+days_remaining = max(1, total_days - current_day)
+
+products_tracker = [
+    ("GA Voice", ach_ga_voice, target_ga_voice),
+    ("GA Data", ach_ga_data, target_ga_data),
+    ("Renew Voice", ach_renew_voice, target_renew_voice),
+    ("Renew Data", ach_renew_data, target_renew_data),
+    ("Zeed", ach_zeed, target_zeed),
+]
+
+st.markdown(f"**Days Remaining in Month:** `{days_remaining}` days")
+
+tracker_cols = st.columns(5)
+
+for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
+    rem_needed = max(0, tgt - ach)
+    daily_req = rem_needed / days_remaining
+    
+    with tracker_cols[idx]:
+        st.markdown(f"**{prod_name}**")
+        st.caption(f"Remaining: {rem_needed} units")
+        st.metric("Needed / Day", f"{daily_req:.1f}")
