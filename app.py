@@ -452,4 +452,91 @@ if insights:
             st.success(message)
 else:
     st.success("🌟 **Great Job!** All your metrics and targets are running at maximum performance!")
+# -------------------------------------------------------------
+# ميزة النصائح والتنبيهات الذكية (Smart Sales Insights - Arabic & English)
+# -------------------------------------------------------------
+st.markdown("---")
+st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية")
+
+insights = []
+
+# 1. فحص التأهل للعمولة
+if min_weighted_ach < 0.75 and avg_weighted_ach >= 0.75:
+    weak_prods = [prod for prod, ach in weighted_ach.items() if ach < 0.75]
+    insights.append((
+        "warning",
+        f"⚠️ **Boost Standard Eligibility | تحسين استحقاق الشرائح الأساسية:**<br>"
+        f"You qualify for **Bonus Scheme** because these products are below 75%: **{', '.join(weak_prods)}**.<br>"
+        f"أنت مؤهل حالياً لعمولة الـ Bonus لأن هذه المنتجات أقل من 75%: **{', '.join(weak_prods)}**. ارفعها لـ 75% لتأهل للعمولة الأساسية الأعلى!"
+    ))
+elif min_weighted_ach < 0.75 and avg_weighted_ach < 0.75:
+    insights.append((
+        "error",
+        "🔴 **Ineligible Warning | تنبيه عدم الاستحقاق:**<br>"
+        "Your Minimum Weighted Achievement and Average are below 75%. Focus on raising all product achievements above 75% to get paid.<br>"
+        "نسبة الإنجاز الأدنى والمعدل أقل من 75%. ركز على رفع جميع المنتجات لأعلى من 75% لتستحق العمولة."
+    ))
+
+# 2. فحص الـ KPIs المؤثرة
+failed_kpis = []
+if kpi1 < 0.60: failed_kpis.append("STC Care (Needs ≥ 60%)")
+if kpi2 < 0.75: failed_kpis.append("W&P (Needs ≥ 75%)")
+if kpi3 < 0.75: failed_kpis.append("Accessories (Needs ≥ 75%)")
+if kpi4 < 0.75: failed_kpis.append("MNP (Needs ≥ 75%)")
+
+if failed_kpis:
+    insights.append((
+        "info",
+        f"🎯 **KPI Opportunity | فرصة تحسين الـ KPIs:**<br>"
+        f"Improve the following KPIs to gain full weight: **{', '.join(failed_kpis)}**.<br>"
+        f"قم بتحسين مؤشرات الأداء التالية لتحصل على الوزن الكامل للـ KPIs: **{', '.join(failed_kpis)}**."
+    ))
+
+# 3. فحص الفرص المتاحة للانتقال لشرائح أعلى في المبيعات
+thresholds = [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40]
+targets_map = {
+    'GA Voice': target_ga_voice,
+    'GA Data': target_ga_data,
+    'Renew Voice': target_renew_voice,
+    'Renew Data': target_renew_data,
+    'Zeed': target_zeed
+}
+achieved_map = {
+    'GA Voice': ach_ga_voice,
+    'GA Data': ach_ga_data,
+    'Renew Voice': ach_renew_voice,
+    'Renew Data': ach_renew_data,
+    'Zeed': ach_zeed
+}
+
+for prod, weight in weighted_ach.items():
+    tgt = targets_map.get(prod, 0)
+    ach = achieved_map.get(prod, 0)
+    if tgt > 0:
+        for t in thresholds:
+            if weight < t:
+                needed_raw = (t - total_kpi_weight) / 0.8
+                needed_units = int(needed_raw * tgt) - ach + 1
+                if 0 < needed_units <= 5:  # إذا كان المتبقي 5 خطوط أو أقل
+                    insights.append((
+                        "success",
+                        f"🔥 **Near Next Tier ({prod}) | قريب من الشريحة التالية:**<br>"
+                        f"You are just **{needed_units} unit(s)** away from unlocking the **{int(t*100)}%** tier payout!<br>"
+                        f"باقي لك **{needed_units} خط/خطوط** فقط للوصول لشريحة **{int(t*100)}%** في عمولة {prod}!"
+                    ))
+                break
+
+# عرض التنبيهات
+if insights:
+    for category, message in insights:
+        if category == "warning":
+            st.warning(message, icon="⚠️")
+        elif category == "error":
+            st.error(message, icon="🔴")
+        elif category == "info":
+            st.info(message, icon="🎯")
+        elif category == "success":
+            st.success(message, icon="🔥")
+else:
+    st.success("🌟 **Great Job!** All your metrics and targets are running at maximum performance!<br>عمل ممتاز! جميع أرقامك ومؤشراتك تعمل بأعلى مستوى أداء!", icon="🌟")
 
