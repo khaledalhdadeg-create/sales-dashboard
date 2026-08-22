@@ -2,6 +2,8 @@ import streamlit as st
 import json
 import os
 import calendar
+import io
+import pandas as pd
 from datetime import datetime
 
 # Page Configuration
@@ -47,7 +49,6 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     .stApp { background-color: #F8F9FA; }
     
-    /* إخفاء القائمة الجانبية تماماً لتجنب أي مشاكل بالمتصفح */
     [data-testid="stSidebar"] { display: none !important; }
     [data-testid="collapsedControl"] { display: none !important; }
     
@@ -107,9 +108,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------------------
-# Admin Settings Panel (زر الترس في رأس الصفحة)
-# -------------------------------------------------------------
+# Admin Panel
 top_col1, top_col2 = st.columns([0.85, 0.15])
 with top_col2:
     show_admin = st.toggle("⚙️ Admin", value=False)
@@ -147,17 +146,12 @@ if show_admin:
                 st.success("✅ Targets updated globally!")
                 st.rerun()
 
-        target_ga_voice = new_ga_voice
-        target_ga_data = new_ga_data
-        target_renew_voice = new_renew_voice
-        target_renew_data = new_renew_data
-        target_zeed = new_zeed
+        target_ga_voice, target_ga_data, target_renew_voice, target_renew_data, target_zeed = new_ga_voice, new_ga_data, new_renew_voice, new_renew_data, new_zeed
     else:
         if admin_pwd != "":
             st.error("🔒 Incorrect Password")
         else:
             st.info("🔒 Enter password to edit targets.")
-            
         target_ga_voice = current_targets["target_ga_voice"]
         target_ga_data = current_targets["target_ga_data"]
         target_renew_voice = current_targets["target_renew_voice"]
@@ -178,44 +172,29 @@ with main_col1:
     st.markdown("### 1️⃣ Sales Achievement (Actual Numbers vs Target %)")
     
     c1, c2 = st.columns([2, 1])
-    with c1:
-        ach_ga_voice = st.number_input("Achieved GA Voice:", min_value=0, value=100)
+    with c1: ach_ga_voice = st.number_input("Achieved GA Voice:", min_value=0, value=100)
     raw_ga_voice = (ach_ga_voice / target_ga_voice) if target_ga_voice > 0 else 0
-    with c2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.metric("Raw Ach %", f"{raw_ga_voice*100:.1f}%")
+    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_ga_voice*100:.1f}%")
 
     c1, c2 = st.columns([2, 1])
-    with c1:
-        ach_ga_data = st.number_input("Achieved GA Data:", min_value=0, value=45)
+    with c1: ach_ga_data = st.number_input("Achieved GA Data:", min_value=0, value=45)
     raw_ga_data = (ach_ga_data / target_ga_data) if target_ga_data > 0 else 0
-    with c2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.metric("Raw Ach %", f"{raw_ga_data*100:.1f}%")
+    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_ga_data*100:.1f}%")
 
     c1, c2 = st.columns([2, 1])
-    with c1:
-        ach_renew_voice = st.number_input("Achieved Renewal Voice:", min_value=0, value=32)
+    with c1: ach_renew_voice = st.number_input("Achieved Renewal Voice:", min_value=0, value=32)
     raw_renew_voice = (ach_renew_voice / target_renew_voice) if target_renew_voice > 0 else 0
-    with c2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.metric("Raw Ach %", f"{raw_renew_voice*100:.1f}%")
+    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_renew_voice*100:.1f}%")
 
     c1, c2 = st.columns([2, 1])
-    with c1:
-        ach_renew_data = st.number_input("Achieved Renewal Data:", min_value=0, value=15)
+    with c1: ach_renew_data = st.number_input("Achieved Renewal Data:", min_value=0, value=15)
     raw_renew_data = (ach_renew_data / target_renew_data) if target_renew_data > 0 else 0
-    with c2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.metric("Raw Ach %", f"{raw_renew_data*100:.1f}%")
+    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_renew_data*100:.1f}%")
 
     c1, c2 = st.columns([2, 1])
-    with c1:
-        ach_zeed = st.number_input("Achieved Zeed:", min_value=0, value=20)
+    with c1: ach_zeed = st.number_input("Achieved Zeed:", min_value=0, value=20)
     raw_zeed = (ach_zeed / target_zeed) if target_zeed > 0 else 0
-    with c2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.metric("Raw Ach %", f"{raw_zeed*100:.1f}%")
+    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_zeed*100:.1f}%")
 
 with main_col2:
     st.markdown("### 2️⃣ Operational KPIs Score (20%)")
@@ -243,7 +222,6 @@ weighted_ach = {k: (v * 0.8) + total_kpi_weight for k, v in raw_ach.items()}
 min_weighted_ach = min(weighted_ach.values())
 avg_weighted_ach = sum(weighted_ach.values()) / len(weighted_ach)
 
-# Matrices
 incentive_matrix = {
     'GA Voice':   {0.80: 88.00, 0.85: 93.50, 0.90: 99.00, 0.95: 104.50, 1.00: 110.00, 1.05: 115.50, 1.10: 121.00, 1.15: 126.50, 1.20: 132.00, 1.25: 137.50, 1.30: 143.00, 1.35: 148.50, 1.40: 154.00},
     'GA Data':    {0.80: 0.00,  0.85: 0.00,  0.90: 49.50, 0.95: 52.25,  1.00: 55.00,  1.05: 57.75,  1.10: 60.50,  1.15: 63.25,  1.20: 66.00,  1.25: 68.75,  1.30: 71.50,  1.35: 74.25,  1.40: 77.00},
@@ -260,7 +238,6 @@ bonus_matrix = {
     'Zeed':       {0.90: 5.00,  1.00: 10.00, 1.10: 15.00, 1.20: 20.00},
 }
 
-# Logic
 standard_payout = 0.0
 bonus_payout = 0.0
 eligibility_status = ""
@@ -272,10 +249,8 @@ if min_weighted_ach >= 0.75:
             rates = incentive_matrix.get(prod, {})
             earned = 0.0
             for thresh in sorted(rates.keys()):
-                if ach >= thresh:
-                    earned = rates[thresh]
+                if ach >= thresh: earned = rates[thresh]
             standard_payout += earned
-
 elif avg_weighted_ach >= 0.75:
     eligibility_status = "Bonus Scheme Qualified (AVERAGE Weighted Ach ≥ 75%)"
     for prod, ach in weighted_ach.items():
@@ -283,15 +258,14 @@ elif avg_weighted_ach >= 0.75:
             rates = bonus_matrix.get(prod, {})
             earned = 0.0
             for thresh in sorted(rates.keys()):
-                if ach >= thresh:
-                    earned = rates[thresh]
+                if ach >= thresh: earned = rates[thresh]
             bonus_payout += earned
 else:
     eligibility_status = "Ineligible (MIN < 75% & AVERAGE < 75%)"
 
 total_final_payout = standard_payout + bonus_payout
 
-# Display Outputs
+# Summary
 st.markdown("---")
 st.markdown("### 📊 Qualification & Payout Summary")
 
@@ -303,17 +277,12 @@ else:
     st.markdown(f'<div class="status-card status-ineligible">🔴 {eligibility_status}</div>', unsafe_allow_html=True)
 
 res_col1, res_col2, res_col3, res_col4 = st.columns(4)
-with res_col1:
-    st.metric("Earned KPI Weight", f"{total_kpi_weight*100:.1f}%")
-with res_col2:
-    st.metric("Standard Scheme Payout", f"{standard_payout:.2f} KD")
-with res_col3:
-    st.metric("Bonus Scheme Payout", f"{bonus_payout:.2f} KD")
-with res_col4:
-    st.metric("Min / Avg Weighted Ach %", f"{min_weighted_ach*100:.1f}% / {avg_weighted_ach*100:.1f}%")
+with res_col1: st.metric("Earned KPI Weight", f"{total_kpi_weight*100:.1f}%")
+with res_col2: st.metric("Standard Scheme Payout", f"{standard_payout:.2f} KD")
+with res_col3: st.metric("Bonus Scheme Payout", f"{bonus_payout:.2f} KD")
+with res_col4: st.metric("Min / Avg Weighted Ach %", f"{min_weighted_ach*100:.1f}% / {avg_weighted_ach*100:.1f}%")
 
 st.markdown("<br>", unsafe_allow_html=True)
-
 st.markdown(f"""
     <div class="total-card">
         <p style="margin: 0; font-size: 15px; opacity: 0.9;">Total Final Payout</p>
@@ -321,12 +290,9 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------------------
-# Daily Target Tracker
-# -------------------------------------------------------------
+# Daily Tracker
 st.markdown("---")
 st.markdown("### 📈 Daily Target Tracker")
-
 now = datetime.now()
 current_day = now.day
 total_days = calendar.monthrange(now.year, now.month)[1]
@@ -343,111 +309,73 @@ products_tracker = [
 ]
 
 tracker_cols = st.columns(5)
-
 for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
     rem_needed = max(0, tgt - ach)
     daily_req = rem_needed / days_remaining
-    
     with tracker_cols[idx]:
         st.markdown(f"**{prod_name}**")
         st.caption(f"Remaining: {rem_needed} units")
         st.metric("Needed / Day", f"{daily_req:.1f}")
 
-# -------------------------------------------------------------
-# KPI Weight Breakdown
-# -------------------------------------------------------------
+# KPI Breakdown
 st.markdown("---")
 st.markdown("### 📋 Operational KPIs Score Breakdown (20%)")
-
 kpi_data = [
     {"KPI": "STC Care", "Achieved Score": f"{kpi1*100:.0f}%", "Min Threshold": "60%", "Earned Weight": f"{kpi1_w*100:.2f}%", "Status": "✅ Qualified" if kpi1 >= 0.60 else "❌ Below Threshold"},
     {"KPI": "W&P", "Achieved Score": f"{kpi2*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi2_w*100:.2f}%", "Status": "✅ Qualified" if kpi2 >= 0.75 else "❌ Below Threshold"},
     {"KPI": "Accessories", "Achieved Score": f"{kpi3*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi3_w*100:.2f}%", "Status": "✅ Qualified" if kpi3 >= 0.75 else "❌ Below Threshold"},
     {"KPI": "MNP", "Achieved Score": f"{kpi4*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi4_w*100:.2f}%", "Status": "✅ Qualified" if kpi4 >= 0.75 else "❌ Below Threshold"},
 ]
-
 st.table(kpi_data)
-st.caption(f"💡 Total KPI Contribution to Final Achievement Weight: **{total_kpi_weight*100:.1f}% / 20.0%**")
 
 # -------------------------------------------------------------
-# Smart Sales Insights & Advice
+# Export Report Functionality (ميزة تصدير التقرير)
 # -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية")
+st.markdown("### 📄 Export Performance Report | تصدير تقرير الأداء")
 
-insights = []
+def generate_excel_report():
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # Sheet 1: Summary
+        summary_df = pd.DataFrame([{
+            "Report Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "Eligibility Status": eligibility_status,
+            "Total Payout (KD)": total_final_payout,
+            "Standard Payout (KD)": standard_payout,
+            "Bonus Payout (KD)": bonus_payout,
+            "KPI Weight Earned": f"{total_kpi_weight*100:.1f}%",
+            "Min Weighted Ach %": f"{min_weighted_ach*100:.1f}%",
+            "Avg Weighted Ach %": f"{avg_weighted_ach*100:.1f}%"
+        }])
+        summary_df.to_excel(writer, sheet_name="Payout Summary", index=False)
+        
+        # Sheet 2: Sales Breakdown
+        sales_df = pd.DataFrame([
+            {"Product": "GA Voice", "Achieved": ach_ga_voice, "Target": target_ga_voice, "Raw Ach %": f"{raw_ga_voice*100:.1f}%", "Weighted Ach %": f"{weighted_ach['GA Voice']*100:.1f}%"},
+            {"Product": "GA Data", "Achieved": ach_ga_data, "Target": target_ga_data, "Raw Ach %": f"{raw_ga_data*100:.1f}%", "Weighted Ach %": f"{weighted_ach['GA Data']*100:.1f}%"},
+            {"Product": "Renew Voice", "Achieved": ach_renew_voice, "Target": target_renew_voice, "Raw Ach %": f"{raw_renew_voice*100:.1f}%", "Weighted Ach %": f"{weighted_ach['Renew Voice']*100:.1f}%"},
+            {"Product": "Renew Data", "Achieved": ach_renew_data, "Target": target_renew_data, "Raw Ach %": f"{raw_renew_data*100:.1f}%", "Weighted Ach %": f"{weighted_ach['Renew Data']*100:.1f}%"},
+            {"Product": "Zeed", "Achieved": ach_zeed, "Target": target_zeed, "Raw Ach %": f"{raw_zeed*100:.1f}%", "Weighted Ach %": f"{weighted_ach['Zeed']*100:.1f}%"},
+        ])
+        sales_df.to_excel(writer, sheet_name="Sales Achievement", index=False)
+        
+        # Sheet 3: KPIs
+        pd.DataFrame(kpi_data).to_excel(writer, sheet_name="KPIs Breakdown", index=False)
+        
+    output.seek(0)
+    return output
 
-if min_weighted_ach < 0.75 and avg_weighted_ach >= 0.75:
-    weak_prods = [prod for prod, ach in weighted_ach.items() if ach < 0.75]
-    insights.append({
-        "style": "insight-warning",
-        "en": f"⚠️ <b>Boost Standard Eligibility:</b> You qualify for <b>Bonus Scheme</b> because these products are below 75%: <b>{', '.join(weak_prods)}</b>.",
-        "ar": f"⚠️ <b>تحسين استحقاق الشرائح الأساسية:</b> أنت مؤهل حالياً لعمولة الـ Bonus لأن هذه المنتجات أقل من 75%: <b>{', '.join(weak_prods)}</b>. ارفعها لـ 75% لتتأهل للعمولة الأساسية الأعلى!"
-    })
-elif min_weighted_ach < 0.75 and avg_weighted_ach < 0.75:
-    insights.append({
-        "style": "insight-error",
-        "en": "🔴 <b>Ineligible Warning:</b> Your Minimum Weighted Achievement and Average are below 75%. Focus on raising all product achievements above 75% to get paid.",
-        "ar": "🔴 <b>تنبيه عدم الاستحقاق:</b> نسبة الإنجاز الأدنى والمعدل أقل من 75%. ركز على رفع جميع المنتجات لأعلى من 75% لتستحق العمولة."
-    })
+excel_file = generate_excel_report()
 
-failed_kpis = []
-if kpi1 < 0.60: failed_kpis.append("STC Care (Needs ≥ 60%)")
-if kpi2 < 0.75: failed_kpis.append("W&P (Needs ≥ 75%)")
-if kpi3 < 0.75: failed_kpis.append("Accessories (Needs ≥ 75%)")
-if kpi4 < 0.75: failed_kpis.append("MNP (Needs ≥ 75%)")
-
-if failed_kpis:
-    insights.append({
-        "style": "insight-info",
-        "en": f"🎯 <b>KPI Opportunity:</b> Improve the following KPIs to gain full weight: <b>{', '.join(failed_kpis)}</b>.",
-        "ar": f"🎯 <b>فرصة تحسين الـ KPIs:</b> قم بتحسين مؤشرات الأداء التالية لتحصل على الوزن الكامل للـ KPIs: <b>{', '.join(failed_kpis)}</b>."
-    })
-
-thresholds = [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40]
-targets_map = {
-    'GA Voice': target_ga_voice,
-    'GA Data': target_ga_data,
-    'Renew Voice': target_renew_voice,
-    'Renew Data': target_renew_data,
-    'Zeed': target_zeed
-}
-achieved_map = {
-    'GA Voice': ach_ga_voice,
-    'GA Data': ach_ga_data,
-    'Renew Voice': ach_renew_voice,
-    'Renew Data': ach_renew_data,
-    'Zeed': ach_zeed
-}
-
-for prod, weight in weighted_ach.items():
-    tgt = targets_map.get(prod, 0)
-    ach = achieved_map.get(prod, 0)
-    if tgt > 0:
-        for t in thresholds:
-            if weight < t:
-                needed_raw = (t - total_kpi_weight) / 0.8
-                needed_units = int(needed_raw * tgt) - ach + 1
-                if 0 < needed_units <= 5:
-                    insights.append({
-                        "style": "insight-success",
-                        "en": f"🔥 <b>Near Next Tier ({prod}):</b> You are just <b>{needed_units} unit(s)</b> away from unlocking the <b>{int(t*100)}%</b> tier payout!",
-                        "ar": f"🔥 <b>قريب من الشريحة التالية:</b> باقي لك <b>{needed_units} خط/خطوط</b> فقط في ({prod}) للوصول لشريحة <b>{int(t*100)}%</b>!"
-                    })
-                break
-
-if insights:
-    for item in insights:
-        st.markdown(f"""
-            <div class="insight-box {item['style']}">
-                <div class="text-en">{item['en']}</div>
-                <div class="text-ar">{item['ar']}</div>
-            </div>
-        """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-        <div class="insight-box insight-success">
-            <div class="text-en">🌟 <b>Great Job!</b> All your metrics and targets are running at maximum performance!</div>
-            <div class="text-ar">🌟 <b>عمل ممتاز!</b> جميع أرقامك ومؤشراتك تعمل بأعلى مستوى أداء!</div>
-        </div>
-    """, unsafe_allow_html=True)
+exp_col1, exp_col2 = st.columns([0.7, 0.3])
+with exp_col1:
+    st.write("يمكنك تنزيل تقرير تفصيلي بأرقامك وعمولتك المتوقعة بصيغة Excel لمراجعته مع المشرف أو الاحتفاظ به كأرشيف شخصي.")
+with exp_col2:
+    st.download_button(
+        label="📥 Download Excel Report",
+        data=excel_file,
+        file_name=f"stc_Incentive_Report_{datetime.now().strftime('%Y_%m_%d')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
