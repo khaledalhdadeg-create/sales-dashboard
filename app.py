@@ -85,6 +85,16 @@ st.markdown("""
     .insight-info { background-color: #D1ECF1; border-left: 5px solid #17A2B8; color: #0C5460; }
     .insight-success { background-color: #D4EDDA; border-left: 5px solid #28A745; color: #155724; }
     
+    .priority-card {
+        background: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
+        padding: 16px; margin-bottom: 12px; border-right: 6px solid #FF007A;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .priority-rank {
+        background: #4F008C; color: white; padding: 3px 10px; border-radius: 12px;
+        font-weight: bold; font-size: 12px; display: inline-block; margin-bottom: 6px;
+    }
+
     .text-en { font-weight: 600; direction: ltr; text-align: left; margin-bottom: 6px; }
     .text-ar { font-weight: 600; direction: rtl; text-align: right; margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; }
     
@@ -344,6 +354,70 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
+# -------------------------------------------------------------
+# Smart Priority Recommendation Engine (ترتيب الأولويات الذكي)
+# -------------------------------------------------------------
+st.markdown("---")
+st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي لأعلى عائد")
+
+targets_map = {'GA Voice': target_ga_voice, 'GA Data': target_ga_data, 'Renew Voice': target_renew_voice, 'Renew Data': target_renew_data, 'Zeed': target_zeed}
+achieved_map = {'GA Voice': ach_ga_voice, 'GA Data': ach_ga_data, 'Renew Voice': ach_renew_voice, 'Renew Data': ach_renew_data, 'Zeed': ach_zeed}
+thresholds = [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40]
+
+priority_opportunities = []
+
+for prod, weight in weighted_ach.items():
+    tgt = targets_map.get(prod, 0)
+    ach = achieved_map.get(prod, 0)
+    rates = incentive_matrix.get(prod, {})
+    
+    current_earned = 0.0
+    for thresh in sorted(rates.keys()):
+        if weight >= thresh:
+            current_earned = rates[thresh]
+
+    if tgt > 0:
+        for t in thresholds:
+            if weight < t:
+                needed_raw = (t - total_kpi_weight) / 0.8
+                needed_units = int(needed_raw * tgt) - ach + 1
+                next_tier_payout = rates.get(t, 0.0)
+                extra_kd = next_tier_payout - current_earned
+
+                if needed_units > 0 and extra_kd > 0:
+                    roi_per_value = extra_kd / needed_units  # عائد كل value واحدة
+                    priority_opportunities.append({
+                        "prod": prod,
+                        "needed_units": needed_units,
+                        "target_tier": int(t * 100),
+                        "extra_kd": extra_kd,
+                        "roi_per_value": roi_per_value
+                    })
+                break
+
+# فرز الفرص حسب أعلى عائد لكل value
+priority_opportunities.sort(key=lambda x: x["roi_per_value"], reverse=True)
+
+if priority_opportunities:
+    p_cols = st.columns(min(3, len(priority_opportunities)))
+    for idx, opp in enumerate(priority_opportunities[:3]):  # عرض أفضل 3 أولويات
+        rank_label = f"الأولوية #{idx+1} 🏆" if idx == 0 else f"الأولوية #{idx+1}"
+        with p_cols[idx]:
+            st.markdown(f"""
+                <div class="priority-card">
+                    <span class="priority-rank">{rank_label}</span>
+                    <h4 style="margin: 5px 0; color: #4F008C;">{opp['prod']}</h4>
+                    <p style="margin: 0; font-size: 13px; color: #555;">
+                        • تحتاج لبيع: <b>{opp['needed_units']} ڤاليو</b><br>
+                        • الشريحة القادمة: <b>{opp['target_tier']}%</b><br>
+                        • الزيادة بالعمولة: <b style="color: #28A745;">+{opp['extra_kd']:.2f} KD</b><br>
+                        • قيمة الـ Value الواحدة: <b>{opp['roi_per_value']:.2f} KD/value</b>
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
+else:
+    st.info("🌟 **أنت حالياً في أعلى شريحة ممكنة لجميع المنتجات!**")
+
 # Daily Tracker
 st.markdown("---")
 st.markdown("### 📈 Daily Target Tracker")
@@ -382,18 +456,12 @@ kpi_data = [
 ]
 st.table(kpi_data)
 
-# -------------------------------------------------------------
-# Smart Sales Insights & Advice (استخدام كلمة ڤاليو)
-# -------------------------------------------------------------
+# Smart Sales Insights & Advice
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية بالأرقام")
 
 insights = []
 
-targets_map = {'GA Voice': target_ga_voice, 'GA Data': target_ga_data, 'Renew Voice': target_renew_voice, 'Renew Data': target_renew_data, 'Zeed': target_zeed}
-achieved_map = {'GA Voice': ach_ga_voice, 'GA Data': ach_ga_data, 'Renew Voice': ach_renew_voice, 'Renew Data': ach_renew_data, 'Zeed': ach_zeed}
-
-# 1. التنبيه بالأرقام في حال عدم الاستحقاق أو التأهل لـ Bonus فقط
 if min_weighted_ach < 0.75:
     weak_details = []
     for prod, weight in weighted_ach.items():
@@ -410,7 +478,7 @@ if min_weighted_ach < 0.75:
     if avg_weighted_ach >= 0.75:
         insights.append({
             "style": "insight-warning",
-            "en": f"⚠️ <b>Unlock Standard Scheme:</b> You are currently on Bonus. Complete the following values to reach 75% across all products and unlock full commission:<br>• {weak_text_en}",
+            "en": f"⚠️ <b>Unlock Standard Scheme:</b> You are currently on Bonus. Complete the following values to reach 75% across all products:<br>• {weak_text_en}",
             "ar": f"⚠️ <b>لتفعيل العمولة الأساسية (Standard):</b> أنت مؤهل حالياً لـ Bonus فقط. تحتاج للوصول لـ 75% في جميع المنتجات إلى تحقيق:<br>• {weak_text_ar}"
         })
     else:
@@ -420,7 +488,6 @@ if min_weighted_ach < 0.75:
             "ar": f"🔴 <b>تنبيه عدم الاستحقاق (0 KD):</b> أنت أقل من 75%. تحتاج لتحقيق الـ Values التالية للوصول للحد الأدنى للعمولة:<br>• {weak_text_ar}"
         })
 
-# 2. نصائح بالأرقام للـ KPIs المفقودة
 failed_kpi_details = []
 if kpi1 < 0.60: failed_kpi_details.append(f"<b>STC Care</b> (تحتاج زيادة {int((0.60 - kpi1)*100)}%)")
 if kpi2 < 0.75: failed_kpi_details.append(f"<b>W&P</b> (تحتاج زيادة {int((0.75 - kpi2)*100)}%)")
@@ -434,36 +501,6 @@ if failed_kpi_details:
         "ar": f"🎯 <b>فرصة زيادة الموزون للـ KPIs:</b> قم بزيادة المؤشرات التالية للحصول على وزن أكبر ورفع عمولتك مباشرة:<br>• " + "<br>• ".join(failed_kpi_details)
     })
 
-# 3. حساب الشريحة التالية لكل منتج + كم ڤاليو متبقي + المبلغ المستفاد بالدينار الكويتي (KD)
-thresholds = [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40]
-
-for prod, weight in weighted_ach.items():
-    tgt = targets_map.get(prod, 0)
-    ach = achieved_map.get(prod, 0)
-    rates = incentive_matrix.get(prod, {})
-    
-    current_earned = 0.0
-    for thresh in sorted(rates.keys()):
-        if weight >= thresh:
-            current_earned = rates[thresh]
-
-    if tgt > 0:
-        for t in thresholds:
-            if weight < t:
-                needed_raw = (t - total_kpi_weight) / 0.8
-                needed_units = int(needed_raw * tgt) - ach + 1
-                next_tier_payout = rates.get(t, 0.0)
-                extra_kd = next_tier_payout - current_earned
-
-                if 0 < needed_units <= 10:
-                    insights.append({
-                        "style": "insight-success",
-                        "en": f"🔥 <b>{prod} Opportunity:</b> Achieve <b>{needed_units} more Value(s)</b> to reach <b>{int(t*100)}% tier</b> and earn an extra <b>+{extra_kd:.2f} KD</b>!",
-                        "ar": f"🔥 <b>فرصة زيادة عمولة ({prod}):</b> تحتاج فقط إلى <b>{needed_units} ڤاليو</b> إضافي للوصول لشريحة <b>{int(t*100)}%</b> وتحصل على زيادة قدرها <b>+{extra_kd:.2f} د.ك</b> في عمولتك!"
-                    })
-                break
-
-# عرض جميع النصائح
 if insights:
     for item in insights:
         st.markdown(f"""
@@ -472,17 +509,8 @@ if insights:
                 <div class="text-ar">{item['ar']}</div>
             </div>
         """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-        <div class="insight-box insight-success">
-            <div class="text-en">🌟 <b>Maximum Tier Achieved!</b> All your metrics are running at top capacity!</div>
-            <div class="text-ar">🌟 <b>أداء أقصى ممتاز!</b> لقد وصلت لأعلى الشرائح المتاحة لجميع المنتجات!</div>
-        </div>
-    """, unsafe_allow_html=True)
 
-# -------------------------------------------------------------
 # Printable HTML / PDF Generator
-# -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📄 Export Performance Report | تصدير تقرير الأداء")
 
