@@ -40,7 +40,7 @@ def save_targets(data):
 
 current_targets = load_targets()
 
-# Custom CSS & Print Media Styles
+# Custom CSS
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -91,12 +91,6 @@ st.markdown("""
     .admin-container {
         background-color: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
         padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(79,0,140,0.05);
-    }
-
-    /* Print styling optimization */
-    @media print {
-        button, [data-testid="stHeader"], footer, .no-print { display: none !important; }
-        .stApp { background-color: #FFFFFF !important; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -402,26 +396,67 @@ else:
     """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# Direct PDF Export via Browser Print
+# Printable HTML / PDF Generator
 # -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 📄 Export Performance Report (PDF) | تصدير تقرير الأداء")
+st.markdown("### 📄 Export Performance Report | تصدير تقرير الأداء")
+
+html_report = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>stc Sales Incentive Report</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; padding: 30px; background: #fff; color: #333; }}
+        .header {{ background: #4F008C; color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }}
+        .card {{ background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }}
+        .total {{ background: #FF007A; color: #fff; font-size: 24px; font-weight: bold; padding: 15px; border-radius: 8px; text-align: center; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+        th, td {{ border: 1px solid #ddd; padding: 10px; text-align: left; }}
+        th {{ background: #4F008C; color: white; }}
+        @media print {{ .print-btn {{ display: none; }} }}
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()" style="background:#FF007A; color:white; padding:12px 24px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:20px;">
+        🖨️ Save as PDF / Print Report
+    </button>
+    <div class="header">
+        <h1>stc Sales Incentive Performance Report</h1>
+        <p>Generated Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
+    </div>
+    
+    <div class="card">
+        <h3>Qualification Status: {eligibility_status}</h3>
+        <p>Earned KPI Weight: {total_kpi_weight*100:.1f}% | Min Weighted Ach: {min_weighted_ach*100:.1f}% | Avg Weighted Ach: {avg_weighted_ach*100:.1f}%</p>
+    </div>
+
+    <div class="total">Total Final Payout: {total_final_payout:.2f} KD</div>
+
+    <h3>Sales Achievement Breakdown</h3>
+    <table>
+        <tr><th>Product</th><th>Achieved</th><th>Target</th><th>Raw Ach %</th><th>Weighted Ach %</th></tr>
+        <tr><td>GA Voice</td><td>{ach_ga_voice}</td><td>{target_ga_voice}</td><td>{raw_ga_voice*100:.1f}%</td><td>{weighted_ach['GA Voice']*100:.1f}%</td></tr>
+        <tr><td>GA Data</td><td>{ach_ga_data}</td><td>{target_ga_data}</td><td>{raw_ga_data*100:.1f}%</td><td>{weighted_ach['GA Data']*100:.1f}%</td></tr>
+        <tr><td>Renew Voice</td><td>{ach_renew_voice}</td><td>{target_renew_voice}</td><td>{raw_renew_voice*100:.1f}%</td><td>{weighted_ach['Renew Voice']*100:.1f}%</td></tr>
+        <tr><td>Renew Data</td><td>{ach_renew_data}</td><td>{target_renew_data}</td><td>{raw_renew_data*100:.1f}%</td><td>{weighted_ach['Renew Data']*100:.1f}%</td></tr>
+        <tr><td>Zeed</td><td>{ach_zeed}</td><td>{target_zeed}</td><td>{raw_zeed*100:.1f}%</td><td>{weighted_ach['Zeed']*100:.1f}%</td></tr>
+    </table>
+
+    <script>
+        window.onload = function() {{ window.print(); }};
+    </script>
+</body>
+</html>"""
 
 exp_col1, exp_col2 = st.columns([0.7, 0.3])
 with exp_col1:
-    st.write("اضغط على الزر لتوليد وحفظ التقرير كاملاً بصيغة **PDF** بجميع الأرقام والتنبيهات.")
+    st.write("اضغط على الزر لتنزيل ملف التقرير. بمجرد فتح الملف على جهازك سيتكفل المتصفح بفتح نافذة التصدير لـ **PDF** فوراً.")
 with exp_col2:
-    st.markdown("""
-        <button onclick="window.print()" style="
-            background-color: #FF007A;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-        ">
-            📄 Export / Print PDF
-        </button>
-    """, unsafe_allow_html=True)
+    st.download_button(
+        label="📥 Download PDF Report",
+        data=html_report,
+        file_name=f"stc_Incentive_Report_{datetime.now().strftime('%Y_%m_%d')}.html",
+        mime="text/html",
+        use_container_width=True
+    )
