@@ -2,8 +2,6 @@ import streamlit as st
 import json
 import os
 import calendar
-import io
-import pandas as pd
 from datetime import datetime
 
 # Page Configuration
@@ -108,7 +106,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Admin Panel
+# Admin Settings Panel
 top_col1, top_col2 = st.columns([0.85, 0.15])
 with top_col2:
     show_admin = st.toggle("⚙️ Admin", value=False)
@@ -329,53 +327,116 @@ kpi_data = [
 st.table(kpi_data)
 
 # -------------------------------------------------------------
-# Export Report Functionality (ميزة تصدير التقرير)
+# Smart Sales Insights & Advice (النصائح والتنبيهات)
+# -------------------------------------------------------------
+st.markdown("---")
+st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية")
+
+insights = []
+
+if min_weighted_ach < 0.75 and avg_weighted_ach >= 0.75:
+    weak_prods = [prod for prod, ach in weighted_ach.items() if ach < 0.75]
+    insights.append({
+        "style": "insight-warning",
+        "en": f"⚠️ <b>Boost Standard Eligibility:</b> You qualify for <b>Bonus Scheme</b> because these products are below 75%: <b>{', '.join(weak_prods)}</b>.",
+        "ar": f"⚠️ <b>تحسين استحقاق الشرائح الأساسية:</b> أنت مؤهل حالياً لعمولة الـ Bonus لأن هذه المنتجات أقل من 75%: <b>{', '.join(weak_prods)}</b>. ارفعها لـ 75% لتتأهل للعمولة الأساسية الأعلى!"
+    })
+elif min_weighted_ach < 0.75 and avg_weighted_ach < 0.75:
+    insights.append({
+        "style": "insight-error",
+        "en": "🔴 <b>Ineligible Warning:</b> Your Minimum Weighted Achievement and Average are below 75%. Focus on raising all product achievements above 75% to get paid.",
+        "ar": "🔴 <b>تنبيه عدم الاستحقاق:</b> نسبة الإنجاز الأدنى والمعدل أقل من 75%. ركز على رفع جميع المنتجات لأعلى من 75% لتستحق العمولة."
+    })
+
+failed_kpis = []
+if kpi1 < 0.60: failed_kpis.append("STC Care (Needs ≥ 60%)")
+if kpi2 < 0.75: failed_kpis.append("W&P (Needs ≥ 75%)")
+if kpi3 < 0.75: failed_kpis.append("Accessories (Needs ≥ 75%)")
+if kpi4 < 0.75: failed_kpis.append("MNP (Needs ≥ 75%)")
+
+if failed_kpis:
+    insights.append({
+        "style": "insight-info",
+        "en": f"🎯 <b>KPI Opportunity:</b> Improve the following KPIs to gain full weight: <b>{', '.join(failed_kpis)}</b>.",
+        "ar": f"🎯 <b>فرصة تحسين الـ KPIs:</b> قم بتحسين مؤشرات الأداء التالية لتحصل على الوزن الكامل للـ KPIs: <b>{', '.join(failed_kpis)}</b>."
+    })
+
+thresholds = [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40]
+targets_map = {'GA Voice': target_ga_voice, 'GA Data': target_ga_data, 'Renew Voice': target_renew_voice, 'Renew Data': target_renew_data, 'Zeed': target_zeed}
+achieved_map = {'GA Voice': ach_ga_voice, 'GA Data': ach_ga_data, 'Renew Voice': ach_renew_voice, 'Renew Data': ach_renew_data, 'Zeed': ach_zeed}
+
+for prod, weight in weighted_ach.items():
+    tgt = targets_map.get(prod, 0)
+    ach = achieved_map.get(prod, 0)
+    if tgt > 0:
+        for t in thresholds:
+            if weight < t:
+                needed_raw = (t - total_kpi_weight) / 0.8
+                needed_units = int(needed_raw * tgt) - ach + 1
+                if 0 < needed_units <= 5:
+                    insights.append({
+                        "style": "insight-success",
+                        "en": f"🔥 <b>Near Next Tier ({prod}):</b> You are just <b>{needed_units} unit(s)</b> away from unlocking the <b>{int(t*100)}%</b> tier payout!",
+                        "ar": f"🔥 <b>قريب من الشريحة التالية:</b> باقي لك <b>{needed_units} خط/خطوط</b> فقط في ({prod}) للوصول لشريحة <b>{int(t*100)}%</b>!"
+                    })
+                break
+
+if insights:
+    for item in insights:
+        st.markdown(f"""
+            <div class="insight-box {item['style']}">
+                <div class="text-en">{item['en']}</div>
+                <div class="text-ar">{item['ar']}</div>
+            </div>
+        """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <div class="insight-box insight-success">
+            <div class="text-en">🌟 <b>Great Job!</b> All your metrics and targets are running at maximum performance!</div>
+            <div class="text-ar">🌟 <b>عمل ممتاز!</b> جميع أرقامك ومؤشراتك تعمل بأعلى مستوى أداء!</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+# -------------------------------------------------------------
+# Export CSV Report (بدون أخطاء أو مكتبات خارجية)
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📄 Export Performance Report | تصدير تقرير الأداء")
 
-def generate_excel_report():
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        # Sheet 1: Summary
-        summary_df = pd.DataFrame([{
-            "Report Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "Eligibility Status": eligibility_status,
-            "Total Payout (KD)": total_final_payout,
-            "Standard Payout (KD)": standard_payout,
-            "Bonus Payout (KD)": bonus_payout,
-            "KPI Weight Earned": f"{total_kpi_weight*100:.1f}%",
-            "Min Weighted Ach %": f"{min_weighted_ach*100:.1f}%",
-            "Avg Weighted Ach %": f"{avg_weighted_ach*100:.1f}%"
-        }])
-        summary_df.to_excel(writer, sheet_name="Payout Summary", index=False)
-        
-        # Sheet 2: Sales Breakdown
-        sales_df = pd.DataFrame([
-            {"Product": "GA Voice", "Achieved": ach_ga_voice, "Target": target_ga_voice, "Raw Ach %": f"{raw_ga_voice*100:.1f}%", "Weighted Ach %": f"{weighted_ach['GA Voice']*100:.1f}%"},
-            {"Product": "GA Data", "Achieved": ach_ga_data, "Target": target_ga_data, "Raw Ach %": f"{raw_ga_data*100:.1f}%", "Weighted Ach %": f"{weighted_ach['GA Data']*100:.1f}%"},
-            {"Product": "Renew Voice", "Achieved": ach_renew_voice, "Target": target_renew_voice, "Raw Ach %": f"{raw_renew_voice*100:.1f}%", "Weighted Ach %": f"{weighted_ach['Renew Voice']*100:.1f}%"},
-            {"Product": "Renew Data", "Achieved": ach_renew_data, "Target": target_renew_data, "Raw Ach %": f"{raw_renew_data*100:.1f}%", "Weighted Ach %": f"{weighted_ach['Renew Data']*100:.1f}%"},
-            {"Product": "Zeed", "Achieved": ach_zeed, "Target": target_zeed, "Raw Ach %": f"{raw_zeed*100:.1f}%", "Weighted Ach %": f"{weighted_ach['Zeed']*100:.1f}%"},
-        ])
-        sales_df.to_excel(writer, sheet_name="Sales Achievement", index=False)
-        
-        # Sheet 3: KPIs
-        pd.DataFrame(kpi_data).to_excel(writer, sheet_name="KPIs Breakdown", index=False)
-        
-    output.seek(0)
-    return output
+csv_content = f"""stc Sales Incentive Report
+Date,{datetime.now().strftime('%Y-%m-%d %H:%M')}
+Eligibility Status,{eligibility_status}
+Total Final Payout (KD),{total_final_payout:.2f}
+Standard Scheme Payout (KD),{standard_payout:.2f}
+Bonus Scheme Payout (KD),{bonus_payout:.2f}
+KPI Earned Weight,{total_kpi_weight*100:.1f}%
+Min Weighted Ach,{min_weighted_ach*100:.1f}%
+Avg Weighted Ach,{avg_weighted_ach*100:.1f}%
 
-excel_file = generate_excel_report()
+--- Sales Breakdown ---
+Product,Achieved,Target,Raw Ach %,Weighted Ach %
+GA Voice,{ach_ga_voice},{target_ga_voice},{raw_ga_voice*100:.1f}%,{weighted_ach['GA Voice']*100:.1f}%
+GA Data,{ach_ga_data},{target_ga_data},{raw_ga_data*100:.1f}%,{weighted_ach['GA Data']*100:.1f}%
+Renew Voice,{ach_renew_voice},{target_renew_voice},{raw_renew_voice*100:.1f}%,{weighted_ach['Renew Voice']*100:.1f}%
+Renew Data,{ach_renew_data},{target_renew_data},{raw_renew_data*100:.1f}%,{weighted_ach['Renew Data']*100:.1f}%
+Zeed,{ach_zeed},{target_zeed},{raw_zeed*100:.1f}%,{weighted_ach['Zeed']*100:.1f}%
+
+--- KPIs Breakdown ---
+KPI,Achieved Score,Min Threshold,Earned Weight
+STC Care,{kpi1*100:.0f}%,60%,{kpi1_w*100:.2f}%
+W&P,{kpi2*100:.0f}%,75%,{kpi2_w*100:.2f}%
+Accessories,{kpi3*100:.0f}%,75%,{kpi3_w*100:.2f}%
+MNP,{kpi4*100:.0f}%,75%,{kpi4_w*100:.2f}%
+"""
 
 exp_col1, exp_col2 = st.columns([0.7, 0.3])
 with exp_col1:
-    st.write("يمكنك تنزيل تقرير تفصيلي بأرقامك وعمولتك المتوقعة بصيغة Excel لمراجعته مع المشرف أو الاحتفاظ به كأرشيف شخصي.")
+    st.write("تحميل تقرير شامل ومفصل بأرقامك وعمولتك بصيغة CSV ملائمة لفتحها في Excel بسرعة ودون أي مشاكل.")
 with exp_col2:
     st.download_button(
-        label="📥 Download Excel Report",
-        data=excel_file,
-        file_name=f"stc_Incentive_Report_{datetime.now().strftime('%Y_%m_%d')}.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        label="📥 Download Report (CSV)",
+        data=csv_content.encode('utf-8-sig'),
+        file_name=f"stc_Incentive_Report_{datetime.now().strftime('%Y_%m_%d')}.csv",
+        mime="text/csv",
         use_container_width=True
     )
