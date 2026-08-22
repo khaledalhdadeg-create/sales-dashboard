@@ -4,8 +4,13 @@ import os
 import calendar
 from datetime import datetime
 
-# Page Configuration
-st.set_page_config(page_title="stc Sales Incentive Calculator", layout="wide", page_icon="📱")
+# Page Configuration (إخفاء القائمة الجانبية تلقائياً عند الفتح)
+st.set_page_config(
+    page_title="stc Sales Incentive Calculator", 
+    layout="wide", 
+    page_icon="📱",
+    initial_sidebar_state="collapsed"
+)
 
 # -------------------------------------------------------------
 # إدارة ملف التارجت العام (Persistence File)
@@ -83,7 +88,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# Admin Sidebar (مخفي داخل قائمة منسدلة مغلقة تلقائياً)
+# Admin Sidebar (مخفي داخل قائمة منسدلة)
 # -------------------------------------------------------------
 with st.sidebar.expander("⚙️ Admin Target Settings", expanded=False):
     ADMIN_PASSWORD = "CHV4"
@@ -294,14 +299,12 @@ st.markdown(f"""
 st.markdown("---")
 st.markdown("### 📈 Daily Target Tracker")
 
-# جلب اليوم والشهر الحاليين تلقائياً من النظام
 now = datetime.now()
 current_day = now.day
 total_days = calendar.monthrange(now.year, now.month)[1]
 
 days_remaining = max(1, total_days - current_day)
 
-# عرض معلومات الشهر واليوم تلقائياً
 st.info(f"📅 **Today:** Day {current_day} of {total_days} ({now.strftime('%B %Y')}) | **Days Remaining:** {days_remaining} days")
 
 products_tracker = [
@@ -340,7 +343,7 @@ st.table(kpi_data)
 st.caption(f"💡 Total KPI Contribution to Final Achievement Weight: **{total_kpi_weight*100:.1f}% / 20.0%**")
 
 # -------------------------------------------------------------
-# ميزة النصائح والتنبيهات الذكية (Smart Sales Insights - Arabic & English)
+# ميزة النصائح والتنبيهات الذكية (Smart Sales Insights - Formatted Lines)
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية")
@@ -352,16 +355,16 @@ if min_weighted_ach < 0.75 and avg_weighted_ach >= 0.75:
     weak_prods = [prod for prod, ach in weighted_ach.items() if ach < 0.75]
     insights.append((
         "warning",
-        f"⚠️ **Boost Standard Eligibility | تحسين استحقاق الشرائح الأساسية:**<br>"
-        f"You qualify for **Bonus Scheme** because these products are below 75%: **{', '.join(weak_prods)}**.<br>"
-        f"أنت مؤهل حالياً لعمولة الـ Bonus لأن هذه المنتجات أقل من 75%: **{', '.join(weak_prods)}**. ارفعها لـ 75% لتأهل للعمولة الأساسية الأعلى!"
+        f"⚠️ <b>Boost Standard Eligibility | تحسين استحقاق الشرائح الأساسية:</b><br>"
+        f"• You qualify for <b>Bonus Scheme</b> because these products are below 75%: <b>{', '.join(weak_prods)}</b>.<br>"
+        f"• أنت مؤهل حالياً لعمولة الـ Bonus لأن هذه المنتجات أقل من 75%: <b>{', '.join(weak_prods)}</b>. ارفعها لـ 75% لتتأهل للعمولة الأساسية الأعلى!"
     ))
 elif min_weighted_ach < 0.75 and avg_weighted_ach < 0.75:
     insights.append((
         "error",
-        "🔴 **Ineligible Warning | تنبيه عدم الاستحقاق:**<br>"
-        "Your Minimum Weighted Achievement and Average are below 75%. Focus on raising all product achievements above 75% to get paid.<br>"
-        "نسبة الإنجاز الأدنى والمعدل أقل من 75%. ركز على رفع جميع المنتجات لأعلى من 75% لتستحق العمولة."
+        "🔴 <b>Ineligible Warning | تنبيه عدم الاستحقاق:</b><br>"
+        "• Your Minimum Weighted Achievement and Average are below 75%. Focus on raising all product achievements above 75% to get paid.<br>"
+        "• نسبة الإنجاز الأدنى والمعدل أقل من 75%. ركز على رفع جميع المنتجات لأعلى من 75% لتستحق العمولة."
     ))
 
 # 2. فحص الـ KPIs المؤثرة
@@ -374,9 +377,9 @@ if kpi4 < 0.75: failed_kpis.append("MNP (Needs ≥ 75%)")
 if failed_kpis:
     insights.append((
         "info",
-        f"🎯 **KPI Opportunity | فرصة تحسين الـ KPIs:**<br>"
-        f"Improve the following KPIs to gain full weight: **{', '.join(failed_kpis)}**.<br>"
-        f"قم بتحسين مؤشرات الأداء التالية لتحصل على الوزن الكامل للـ KPIs: **{', '.join(failed_kpis)}**."
+        f"🎯 <b>KPI Opportunity | فرصة تحسين الـ KPIs:</b><br>"
+        f"• Improve the following KPIs to gain full weight: <b>{', '.join(failed_kpis)}</b>.<br>"
+        f"• قم بتحسين مؤشرات الأداء التالية لتحصل على الوزن الكامل للـ KPIs: <b>{', '.join(failed_kpis)}</b>."
     ))
 
 # 3. فحص الفرص المتاحة للانتقال لشرائح أعلى في المبيعات
@@ -407,13 +410,13 @@ for prod, weight in weighted_ach.items():
                 if 0 < needed_units <= 5:
                     insights.append((
                         "success",
-                        f"🔥 **Near Next Tier ({prod}) | قريب من الشريحة التالية:**<br>"
-                        f"You are just **{needed_units} unit(s)** away from unlocking the **{int(t*100)}%** tier payout!<br>"
-                        f"باقي لك **{needed_units} خط/خطوط** فقط للوصول لشريحة **{int(t*100)}%** في عمولة {prod}!"
+                        f"🔥 <b>Near Next Tier ({prod}) | قريب من الشريحة التالية:</b><br>"
+                        f"• You are just <b>{needed_units} unit(s)</b> away from unlocking the <b>{int(t*100)}%</b> tier payout!<br>"
+                        f"• باقي لك <b>{needed_units} خط/خطوط</b> فقط للوصول لشريحة <b>{int(t*100)}%</b> في عمولة {prod}!"
                     ))
                 break
 
-# عرض التنبيهات
+# عرض التنبيهات باستخدام HTML لقراءة الـ <br>
 if insights:
     for category, message in insights:
         if category == "warning":
@@ -425,4 +428,4 @@ if insights:
         elif category == "success":
             st.success(message, icon="🔥")
 else:
-    st.success("🌟 **Great Job!** All your metrics and targets are running at maximum performance!<br>عمل ممتاز! جميع أرقامك ومؤشراتك تعمل بأعلى مستوى أداء!", icon="🌟")
+    st.success("🌟 <b>Great Job!</b> All your metrics and targets are running at maximum performance!<br>• عمل ممتاز! جميع أرقامك ومؤشراتك تعمل بأعلى مستوى أداء!", icon="🌟")
