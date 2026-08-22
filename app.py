@@ -315,3 +315,40 @@ for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
         st.markdown(f"**{prod_name}**")
         st.caption(f"Remaining: {rem_needed} units")
         st.metric("Needed / Day", f"{daily_req:.1f}")
+# -------------------------------------------------------------
+# ميزة حاسبة Target اليومية (Daily Run-Rate Tracker - Automatic Date)
+# -------------------------------------------------------------
+import calendar
+from datetime import datetime
+
+st.markdown("---")
+st.markdown("### 📈 Daily Target Tracker")
+
+# جلب اليوم والشهر الحاليين تلقائياً من النظام
+now = datetime.now()
+current_day = now.day
+total_days = calendar.monthrange(now.year, now.month)[1]
+
+days_remaining = max(1, total_days - current_day)
+
+# عرض معلومات الشهر واليوم تلقائياً
+st.info(f"📅 **Today:** Day {current_day} of {total_days} ({now.strftime('%B %Y')}) | **Days Remaining:** {days_remaining} days")
+
+products_tracker = [
+    ("GA Voice", ach_ga_voice, target_ga_voice),
+    ("GA Data", ach_ga_data, target_ga_data),
+    ("Renew Voice", ach_renew_voice, target_renew_voice),
+    ("Renew Data", ach_renew_data, target_renew_data),
+    ("Zeed", ach_zeed, target_zeed),
+]
+
+tracker_cols = st.columns(5)
+
+for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
+    rem_needed = max(0, tgt - ach)
+    daily_req = rem_needed / days_remaining
+    
+    with tracker_cols[idx]:
+        st.markdown(f"**{prod_name}**")
+        st.caption(f"Remaining: {rem_needed} units")
+        st.metric("Needed / Day", f"{daily_req:.1f}")
