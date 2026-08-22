@@ -352,3 +352,23 @@ for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
         st.markdown(f"**{prod_name}**")
         st.caption(f"Remaining: {rem_needed} units")
         st.metric("Needed / Day", f"{daily_req:.1f}")
+
+# -------------------------------------------------------------
+# ميزة تفصيل نقاط الـ KPIs (KPI Weight Breakdown)
+# -------------------------------------------------------------
+st.markdown("---")
+st.markdown("### 📋 Operational KPIs Score Breakdown (20%)")
+
+# تجهيز بيانات الجدول
+kpi_data = [
+    {"KPI": "STC Care", "Achieved Score": f"{kpi1*100:.0f}%", "Min Threshold": "60%", "Earned Weight": f"{kpi1_w*100:.2f}%", "Status": "✅ Qualified" if kpi1 >= 0.60 else "❌ Below Threshold"},
+    {"KPI": "W&P", "Achieved Score": f"{kpi2*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi2_w*100:.2f}%", "Status": "✅ Qualified" if kpi2 >= 0.75 else "❌ Below Threshold"},
+    {"KPI": "Accessories", "Achieved Score": f"{kpi3*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi3_w*100:.2f}%", "Status": "✅ Qualified" if kpi3 >= 0.75 else "❌ Below Threshold"},
+    {"KPI": "MNP", "Achieved Score": f"{kpi4*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi4_w*100:.2f}%", "Status": "✅ Qualified" if kpi4 >= 0.75 else "❌ Below Threshold"},
+]
+
+# عرض التفاصيل في جدول منظم
+st.table(kpi_data)
+
+st.caption(f"💡 Total KPI Contribution to Final Achievement Weight: **{total_kpi_weight*100:.1f}% / 20.0%**")
+
