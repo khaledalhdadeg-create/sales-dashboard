@@ -92,8 +92,55 @@ st.markdown("""
         background-color: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
         padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(79,0,140,0.05);
     }
+
+    /* Custom Progress Bar Style */
+    .progress-wrapper {
+        background-color: #E9ECEF;
+        border-radius: 10px;
+        height: 18px;
+        width: 100%;
+        overflow: hidden;
+        margin-top: 8px;
+        margin-bottom: 15px;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .progress-bar-inner {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.4s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 8px;
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+    }
     </style>
 """, unsafe_allow_html=True)
+
+# دالة رسم شريط التقدم المرئي
+def render_progress_bar(ratio):
+    pct = ratio * 100
+    display_pct = min(pct, 100)  # أقصى كبر لشريط التقدم 100%
+    
+    # تحديد اللون بناءً على النسبة
+    if pct < 75:
+        color = "linear-gradient(90deg, #EA4335, #D93025)" # أحمر
+    elif pct < 100:
+        color = "linear-gradient(90deg, #FBBC04, #F9AB00)" # برتقالي
+    elif pct < 120:
+        color = "linear-gradient(90deg, #34A853, #188038)" # أخضر
+    else:
+        color = "linear-gradient(90deg, #FF007A, #4F008C)" # stc Pink to Purple (تجاوز ممتاز)
+        
+    st.markdown(f"""
+        <div class="progress-wrapper">
+            <div class="progress-bar-inner" style="width: {display_pct}%; background: {color};">
+                {f"{pct:.0f}%" if display_pct > 15 else ""}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 # Main Header
 st.markdown("""
@@ -167,32 +214,42 @@ else:
 main_col1, main_col2 = st.columns([1.2, 1])
 
 with main_col1:
-    st.markdown("### 1️⃣ Sales Achievement (Actual Numbers vs Target %)")
+    st.markdown("### 1️⃣ Sales Achievement & Target Progress")
     
+    # GA Voice
     c1, c2 = st.columns([2, 1])
     with c1: ach_ga_voice = st.number_input("Achieved GA Voice:", min_value=0, value=100)
     raw_ga_voice = (ach_ga_voice / target_ga_voice) if target_ga_voice > 0 else 0
-    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_ga_voice*100:.1f}%")
+    with c2: st.metric("Raw Ach %", f"{raw_ga_voice*100:.1f}%")
+    render_progress_bar(raw_ga_voice)
 
+    # GA Data
     c1, c2 = st.columns([2, 1])
     with c1: ach_ga_data = st.number_input("Achieved GA Data:", min_value=0, value=45)
     raw_ga_data = (ach_ga_data / target_ga_data) if target_ga_data > 0 else 0
-    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_ga_data*100:.1f}%")
+    with c2: st.metric("Raw Ach %", f"{raw_ga_data*100:.1f}%")
+    render_progress_bar(raw_ga_data)
 
+    # Renew Voice
     c1, c2 = st.columns([2, 1])
     with c1: ach_renew_voice = st.number_input("Achieved Renewal Voice:", min_value=0, value=32)
     raw_renew_voice = (ach_renew_voice / target_renew_voice) if target_renew_voice > 0 else 0
-    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_renew_voice*100:.1f}%")
+    with c2: st.metric("Raw Ach %", f"{raw_renew_voice*100:.1f}%")
+    render_progress_bar(raw_renew_voice)
 
+    # Renew Data
     c1, c2 = st.columns([2, 1])
     with c1: ach_renew_data = st.number_input("Achieved Renewal Data:", min_value=0, value=15)
     raw_renew_data = (ach_renew_data / target_renew_data) if target_renew_data > 0 else 0
-    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_renew_data*100:.1f}%")
+    with c2: st.metric("Raw Ach %", f"{raw_renew_data*100:.1f}%")
+    render_progress_bar(raw_renew_data)
 
+    # Zeed
     c1, c2 = st.columns([2, 1])
     with c1: ach_zeed = st.number_input("Achieved Zeed:", min_value=0, value=20)
     raw_zeed = (ach_zeed / target_zeed) if target_zeed > 0 else 0
-    with c2: st.markdown("<br>", unsafe_allow_html=True); st.metric("Raw Ach %", f"{raw_zeed*100:.1f}%")
+    with c2: st.metric("Raw Ach %", f"{raw_zeed*100:.1f}%")
+    render_progress_bar(raw_zeed)
 
 with main_col2:
     st.markdown("### 2️⃣ Operational KPIs Score (20%)")
