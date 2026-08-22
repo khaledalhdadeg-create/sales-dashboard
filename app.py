@@ -40,7 +40,7 @@ def save_targets(data):
 
 current_targets = load_targets()
 
-# Custom CSS
+# Custom CSS & Print Media Styles
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -91,6 +91,12 @@ st.markdown("""
     .admin-container {
         background-color: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
         padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(79,0,140,0.05);
+    }
+
+    /* Print styling optimization */
+    @media print {
+        button, [data-testid="stHeader"], footer, .no-print { display: none !important; }
+        .stApp { background-color: #FFFFFF !important; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -326,9 +332,7 @@ kpi_data = [
 ]
 st.table(kpi_data)
 
-# -------------------------------------------------------------
-# Smart Sales Insights & Advice (النصائح والتنبيهات)
-# -------------------------------------------------------------
+# Smart Sales Insights & Advice
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية")
 
@@ -398,45 +402,26 @@ else:
     """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# Export CSV Report (بدون أخطاء أو مكتبات خارجية)
+# Direct PDF Export via Browser Print
 # -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 📄 Export Performance Report | تصدير تقرير الأداء")
-
-csv_content = f"""stc Sales Incentive Report
-Date,{datetime.now().strftime('%Y-%m-%d %H:%M')}
-Eligibility Status,{eligibility_status}
-Total Final Payout (KD),{total_final_payout:.2f}
-Standard Scheme Payout (KD),{standard_payout:.2f}
-Bonus Scheme Payout (KD),{bonus_payout:.2f}
-KPI Earned Weight,{total_kpi_weight*100:.1f}%
-Min Weighted Ach,{min_weighted_ach*100:.1f}%
-Avg Weighted Ach,{avg_weighted_ach*100:.1f}%
-
---- Sales Breakdown ---
-Product,Achieved,Target,Raw Ach %,Weighted Ach %
-GA Voice,{ach_ga_voice},{target_ga_voice},{raw_ga_voice*100:.1f}%,{weighted_ach['GA Voice']*100:.1f}%
-GA Data,{ach_ga_data},{target_ga_data},{raw_ga_data*100:.1f}%,{weighted_ach['GA Data']*100:.1f}%
-Renew Voice,{ach_renew_voice},{target_renew_voice},{raw_renew_voice*100:.1f}%,{weighted_ach['Renew Voice']*100:.1f}%
-Renew Data,{ach_renew_data},{target_renew_data},{raw_renew_data*100:.1f}%,{weighted_ach['Renew Data']*100:.1f}%
-Zeed,{ach_zeed},{target_zeed},{raw_zeed*100:.1f}%,{weighted_ach['Zeed']*100:.1f}%
-
---- KPIs Breakdown ---
-KPI,Achieved Score,Min Threshold,Earned Weight
-STC Care,{kpi1*100:.0f}%,60%,{kpi1_w*100:.2f}%
-W&P,{kpi2*100:.0f}%,75%,{kpi2_w*100:.2f}%
-Accessories,{kpi3*100:.0f}%,75%,{kpi3_w*100:.2f}%
-MNP,{kpi4*100:.0f}%,75%,{kpi4_w*100:.2f}%
-"""
+st.markdown("### 📄 Export Performance Report (PDF) | تصدير تقرير الأداء")
 
 exp_col1, exp_col2 = st.columns([0.7, 0.3])
 with exp_col1:
-    st.write("تحميل تقرير شامل ومفصل بأرقامك وعمولتك بصيغة CSV ملائمة لفتحها في Excel بسرعة ودون أي مشاكل.")
+    st.write("اضغط على الزر لتوليد وحفظ التقرير كاملاً بصيغة **PDF** بجميع الأرقام والتنبيهات.")
 with exp_col2:
-    st.download_button(
-        label="📥 Download Report (CSV)",
-        data=csv_content.encode('utf-8-sig'),
-        file_name=f"stc_Incentive_Report_{datetime.now().strftime('%Y_%m_%d')}.csv",
-        mime="text/csv",
-        use_container_width=True
-    )
+    st.markdown("""
+        <button onclick="window.print()" style="
+            background-color: #FF007A;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        ">
+            📄 Export / Print PDF
+        </button>
+    """, unsafe_allow_html=True)
