@@ -383,7 +383,7 @@ kpi_data = [
 st.table(kpi_data)
 
 # -------------------------------------------------------------
-# Smart Sales Insights & Advice (تحليل النصائح الرقمي المباشر)
+# Smart Sales Insights & Advice (استخدام كلمة ڤاليو)
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية بالأرقام")
@@ -400,10 +400,9 @@ if min_weighted_ach < 0.75:
         if weight < 0.75:
             tgt = targets_map[prod]
             ach = achieved_map[prod]
-            # حساب كم معاملة تفصله عن الوصول لـ 75%
             needed_raw = (0.75 - total_kpi_weight) / 0.8
             needed_units = max(1, int(needed_raw * tgt) - ach + 1)
-            weak_details.append(f"<b>{prod}</b>: تحتاچ إلى <b>{needed_units} معاملة/معاملات</b>")
+            weak_details.append(f"<b>{prod}</b>: تحتاج إلى <b>{needed_units} ڤاليو</b>")
 
     weak_text_ar = "<br>• ".join(weak_details)
     weak_text_en = ", ".join([f"{p}" for p in weak_details])
@@ -411,14 +410,14 @@ if min_weighted_ach < 0.75:
     if avg_weighted_ach >= 0.75:
         insights.append({
             "style": "insight-warning",
-            "en": f"⚠️ <b>Unlock Standard Scheme:</b> You are currently on Bonus. Complete the following to reach 75% across all products and unlock full commission:<br>• {weak_text_en}",
-            "ar": f"⚠️ <b>لتفعيل العمولة الأساسية (Standard):</b> أنت مؤهل حالياً لـ Bonus فقط. تحتاج للوصول لـ 75% في جميع المنتجات:<br>• {weak_text_ar}"
+            "en": f"⚠️ <b>Unlock Standard Scheme:</b> You are currently on Bonus. Complete the following values to reach 75% across all products and unlock full commission:<br>• {weak_text_en}",
+            "ar": f"⚠️ <b>لتفعيل العمولة الأساسية (Standard):</b> أنت مؤهل حالياً لـ Bonus فقط. تحتاج للوصول لـ 75% في جميع المنتجات إلى تحقيق:<br>• {weak_text_ar}"
         })
     else:
         insights.append({
             "style": "insight-error",
-            "en": f"🔴 <b>Ineligible Status:</b> You need to achieve the following transactions to reach the minimum payout threshold (75%):<br>• {weak_text_en}",
-            "ar": f"🔴 <b>تنبيه عدم الاستحقاق (0 KD):</b> أنت أقل من 75%. تحتاج لتحقيق المعاملات التالية للوصول للحد الأدنى للعمولة:<br>• {weak_text_ar}"
+            "en": f"🔴 <b>Ineligible Status:</b> You need to achieve the following values to reach the minimum payout threshold (75%):<br>• {weak_text_en}",
+            "ar": f"🔴 <b>تنبيه عدم الاستحقاق (0 KD):</b> أنت أقل من 75%. تحتاج لتحقيق الـ Values التالية للوصول للحد الأدنى للعمولة:<br>• {weak_text_ar}"
         })
 
 # 2. نصائح بالأرقام للـ KPIs المفقودة
@@ -432,10 +431,10 @@ if failed_kpi_details:
     insights.append({
         "style": "insight-info",
         "en": f"🎯 <b>KPI Cash Boost:</b> Raise these KPIs to unlock up to 20% weight:<br>• " + "<br>• ".join(failed_kpi_details),
-        "ar": f"🎯 <b>فرصة زيادة الموزون للـ KPIs:</b> قم بزيادة المؤشرات التالية للحصول على وزن أكبر رفع عمولتك مباشرة:<br>• " + "<br>• ".join(failed_kpi_details)
+        "ar": f"🎯 <b>فرصة زيادة الموزون للـ KPIs:</b> قم بزيادة المؤشرات التالية للحصول على وزن أكبر ورفع عمولتك مباشرة:<br>• " + "<br>• ".join(failed_kpi_details)
     })
 
-# 3. حساب الشريحة التالية لكل منتج + كم معاملة متبقية + المبلغ المستفاد بالدينار الكويتي (KD)
+# 3. حساب الشريحة التالية لكل منتج + كم ڤاليو متبقي + المبلغ المستفاد بالدينار الكويتي (KD)
 thresholds = [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40]
 
 for prod, weight in weighted_ach.items():
@@ -443,7 +442,6 @@ for prod, weight in weighted_ach.items():
     ach = achieved_map.get(prod, 0)
     rates = incentive_matrix.get(prod, {})
     
-    # معرفة المبلغ الحالي المكسوب من هذا المنتج
     current_earned = 0.0
     for thresh in sorted(rates.keys()):
         if weight >= thresh:
@@ -457,11 +455,11 @@ for prod, weight in weighted_ach.items():
                 next_tier_payout = rates.get(t, 0.0)
                 extra_kd = next_tier_payout - current_earned
 
-                if 0 < needed_units <= 10:  # إظهار الفرص القريبة (10 معاملات فأقل)
+                if 0 < needed_units <= 10:
                     insights.append({
                         "style": "insight-success",
-                        "en": f"🔥 <b>{prod} Opportunity:</b> Sell <b>{needed_units} more transaction(s)</b> to reach <b>{int(t*100)}% tier</b> and earn an extra <b>+{extra_kd:.2f} KD</b>!",
-                        "ar": f"🔥 <b>فرصة زيادة عمولة ({prod}):</b> تحتاج فقط إلى <b>{needed_units} معاملة/معاملات</b> إضافية للوصول لشريحة <b>{int(t*100)}%</b> وتحصل على زيادة قدرها <b>+{extra_kd:.2f} د.ك</b> في عمولتك!"
+                        "en": f"🔥 <b>{prod} Opportunity:</b> Achieve <b>{needed_units} more Value(s)</b> to reach <b>{int(t*100)}% tier</b> and earn an extra <b>+{extra_kd:.2f} KD</b>!",
+                        "ar": f"🔥 <b>فرصة زيادة عمولة ({prod}):</b> تحتاج فقط إلى <b>{needed_units} ڤاليو</b> إضافي للوصول لشريحة <b>{int(t*100)}%</b> وتحصل على زيادة قدرها <b>+{extra_kd:.2f} د.ك</b> في عمولتك!"
                     })
                 break
 
@@ -478,7 +476,7 @@ else:
     st.markdown("""
         <div class="insight-box insight-success">
             <div class="text-en">🌟 <b>Maximum Tier Achieved!</b> All your metrics are running at top capacity!</div>
-            <div class="text-ar">🌟 <b>أداء أقصى ممتازي!</b> لقد وصلت لأعلى الشرائح المتاحة لجميع المنتجات!</div>
+            <div class="text-ar">🌟 <b>أداء أقصى ممتاز!</b> لقد وصلت لأعلى الشرائح المتاحة لجميع المنتجات!</div>
         </div>
     """, unsafe_allow_html=True)
 
