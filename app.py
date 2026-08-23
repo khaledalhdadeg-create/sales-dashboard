@@ -2,7 +2,7 @@
 # Smart Priority Recommendation Engine (ترتيب الأولويات الذكي)
 # -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي")
+st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي لأعلى عائد")
 
 targets_map = {'GA Voice': target_ga_voice, 'GA Data': target_ga_data, 'Renew Voice': target_renew_voice, 'Renew Data': target_renew_data, 'Zeed': target_zeed}
 achieved_map = {'GA Voice': ach_ga_voice, 'GA Data': ach_ga_data, 'Renew Voice': ach_renew_voice, 'Renew Data': ach_renew_data, 'Zeed': ach_zeed}
@@ -39,7 +39,7 @@ for prod, weight in weighted_ach.items():
                     })
                 break
 
-# فرز الفرص حسب الأعلى أولوية
+# فرز الفرص حسب أعلى عائد لكل value
 priority_opportunities.sort(key=lambda x: x["roi_per_value"], reverse=True)
 
 if priority_opportunities:
@@ -74,7 +74,7 @@ if priority_opportunities:
                     
                     <div style="font-size: 14px; color: #333; line-height: 1.8;">
                         <div style="margin-bottom: 6px;">
-                            📌 <b>المطلوب:</b> <span style="color: #4F008C; font-weight: bold;">{opp['needed_units']}</span> Values
+                            📌 <b>المطلوب:</b> <span style="color: #4F008C; font-weight: bold;">{opp['needed_units']}</span> بيعة (Values)
                         </div>
                         <div style="margin-bottom: 6px;">
                             🎯 <b>الشريحة القادمة:</b> <b>{opp['target_tier']}%</b>
@@ -83,10 +83,10 @@ if priority_opportunities:
                             💰 <b>الزيادة بالعمولة:</b> <span style="color: #28A745; font-weight: bold;">+{opp['extra_kd']:.2f} د.ك</span>
                         </div>
                         <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #E2D1F0; background: #F8F9FA; padding: 8px; border-radius: 8px; text-align: center;">
-                            ⚡ <b>لكل Value واحدة:</b> <span style="color: #FF007A; font-weight: 800;">{opp['roi_per_value']:.2f} د.ك</span>
+                            ⚡ <b>ربح البيعة الواحدة:</b> <span style="color: #FF007A; font-weight: 800;">{opp['roi_per_value']:.2f} د.ك</span> / Value
                         </div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
 else:
-    st.info("🌟 **أنت حالياً في أعلى شريحة عمولة ممكنة لجميع المنتجات.**")
+    st.info("🌟 **ما شاء الله! أنت حالياً في أعلى شريحة عمولة ممكنة لجميع المنتجات.**")
