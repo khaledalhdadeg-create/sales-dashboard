@@ -6,7 +6,7 @@ from datetime import datetime
 
 # Page Configuration
 st.set_page_config(
-    page_title="stc Sales Incentive Calculator - The Avenues", 
+    page_title="stc Sales Incentive Calculator - Avenues Branch 4", 
     layout="wide", 
     page_icon="📱",
     initial_sidebar_state="collapsed"
@@ -166,7 +166,7 @@ st.markdown("""
     <div class="stc-header">
         <div>
             <h1>stc | Sales Incentive Calculator</h1>
-            <p>Interactive commission & bonus dashboard — فرع الأڤنيوز (The Avenues)</p>
+            <p>Interactive commission & bonus dashboard — Avenues Branch 4</p>
         </div>
         <div class="stc-badge">Sales Incentive</div>
     </div>
@@ -428,7 +428,7 @@ else:
     st.info("🌟 **أنت حالياً في أعلى شريحة ممكنة لجميع المنتجات!**")
 
 # -------------------------------------------------------------
-# مؤشر سرعة الإنجاز مقابل الوقت (Pacing & Velocity Gauge) الجديد
+# مؤشر سرعة الإنجاز مقابل الوقت (Pacing & Velocity Gauge)
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### ⏱️ Pacing & Velocity Gauge | مؤشر سرعة الإنجاز مقابل الوقت")
@@ -452,7 +452,6 @@ products_tracker = [
 
 for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
     ach_pct = (ach / tgt) if tgt > 0 else 0
-    # الفرق بين نسبة الإنجاز الفعلية ونسبة الوقت المنقضي
     pacing_diff = ach_pct - time_elapsed_pct
     
     if pacing_diff >= 0.05:
@@ -478,7 +477,7 @@ for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
                 <p style="margin: 4px 0; font-size: 12px; color: #666;">الإنجاز: <b>{ach_pct*100:.1f}%</b></p>
                 <p style="margin: 2px 0; font-size: 12px; color: {status_color}; font-weight: bold;">{status_text}</p>
                 <hr style="margin: 6px 0; border: none; border-top: 1px solid #eee;">
-                <p style="margin: 0; font-size: 11px; color: #555;">المطلوب يومياً:<br><b style="font-size: 14px; color: #333;">{daily_req:.1f} وحدة/يوم</b></p>
+                <p style="margin: 0; font-size: 11px; color: #555;">المطلوب يومياً:<br><b style="font-size: 14px; color: #333;">{daily_req:.1f} ڤاليو يومياً</b></p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -493,13 +492,12 @@ kpi_data = [
 ]
 st.table(kpi_data)
 
-# Smart Sales Insights & Advice (Including Threshold Jump Warning)
+# Smart Sales Insights & Advice
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية بالأرقام")
 
 insights = []
 
-# تنبيه الفجوة الحرجة (Threshold Jump Warning)
 critical_jumps = []
 for opp in priority_opportunities:
     if opp["needed_units"] == 1:
@@ -513,7 +511,6 @@ if critical_jumps:
         "ar": f"🚨 <b>تنبيه قفزة الشرائح (فجوة وحدة واحدة):</b> أنت على بعد <b>بيع وحدة واحدة فقط (1 Value)</b> للانتقال لشريحة أعلى في:<br>• {jumps_text}. أنجز هذه البيعة فوراً لتعظيم عمولتك!"
     })
 
-# تنبيهات السرعة الزمنية (Pacing Warning)
 lagging_prods = []
 for prod_name, ach, tgt in products_tracker:
     ach_pct = (ach / tgt) if tgt > 0 else 0
@@ -584,7 +581,7 @@ html_report = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>stc Sales Incentive Report - The Avenues</title>
+    <title>stc Sales Incentive Report - Avenues Branch 4</title>
     <style>
         body {{ font-family: Arial, sans-serif; padding: 30px; background: #fff; color: #333; }}
         .header {{ background: #4F008C; color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }}
@@ -601,7 +598,7 @@ html_report = f"""<!DOCTYPE html>
         🖨️ Save as PDF / Print Report
     </button>
     <div class="header">
-        <h1>stc Sales Incentive Performance Report (The Avenues)</h1>
+        <h1>stc Sales Incentive Performance Report (Avenues Branch 4)</h1>
         <p>Generated Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
     </div>
     
@@ -630,12 +627,12 @@ html_report = f"""<!DOCTYPE html>
 
 exp_col1, exp_col2 = st.columns([0.7, 0.3])
 with exp_col1:
-    st.write("اضغط على الزر لتنزيل ملف التقرير. بمجرد فتح الملف على جهازك سيتكفل المتصفح بفتح نافذة التصدير لـ **PDF** فوراً.")
+    st.write("اضغط على الزر لتنزيل ملف التقرير الخاص بـ **Avenues Branch 4** مع إمكانية حفظه بصيغة **PDF**.")
 with exp_col2:
     st.download_button(
         label="📥 Download PDF Report",
         data=html_report,
-        file_name=f"stc_Incentive_Report_Avenues_{datetime.now().strftime('%Y_%m_%d')}.html",
+        file_name=f"stc_Incentive_Report_Avenues4_{datetime.now().strftime('%Y_%m_%d')}.html",
         mime="text/html",
         use_container_width=True
     )
