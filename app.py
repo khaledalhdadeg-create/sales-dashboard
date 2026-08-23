@@ -85,16 +85,6 @@ st.markdown("""
     .insight-info { background-color: #D1ECF1; border-left: 5px solid #17A2B8; color: #0C5460; }
     .insight-success { background-color: #D4EDDA; border-left: 5px solid #28A745; color: #155724; }
     
-    .priority-card {
-        background: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
-        padding: 16px; margin-bottom: 12px; border-right: 6px solid #FF007A;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    }
-    .priority-rank {
-        background: #4F008C; color: white; padding: 3px 10px; border-radius: 12px;
-        font-weight: bold; font-size: 12px; display: inline-block; margin-bottom: 6px;
-    }
-
     .text-en { font-weight: 600; direction: ltr; text-align: left; margin-bottom: 6px; }
     .text-ar { font-weight: 600; direction: rtl; text-align: right; margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; }
     
@@ -358,7 +348,7 @@ st.markdown(f"""
 # Smart Priority Recommendation Engine (ترتيب الأولويات الذكي)
 # -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي لأعلى عائد")
+st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي")
 
 targets_map = {'GA Voice': target_ga_voice, 'GA Data': target_ga_data, 'Renew Voice': target_renew_voice, 'Renew Data': target_renew_data, 'Zeed': target_zeed}
 achieved_map = {'GA Voice': ach_ga_voice, 'GA Data': ach_ga_data, 'Renew Voice': ach_renew_voice, 'Renew Data': ach_renew_data, 'Zeed': ach_zeed}
@@ -385,7 +375,7 @@ for prod, weight in weighted_ach.items():
                 extra_kd = next_tier_payout - current_earned
 
                 if needed_units > 0 and extra_kd > 0:
-                    roi_per_value = extra_kd / needed_units  # عائد كل value واحدة
+                    roi_per_value = extra_kd / needed_units
                     priority_opportunities.append({
                         "prod": prod,
                         "needed_units": needed_units,
@@ -395,64 +385,56 @@ for prod, weight in weighted_ach.items():
                     })
                 break
 
-# فرز الفرص حسب أعلى عائد لكل value
+# فرز الفرص حسب الأعلى أولوية
 priority_opportunities.sort(key=lambda x: x["roi_per_value"], reverse=True)
 
 if priority_opportunities:
     p_cols = st.columns(min(3, len(priority_opportunities)))
-    for idx, opp in enumerate(priority_opportunities[:3]):  # عرض أفضل 3 أولويات
-        rank_label = f"الأولوية #{idx+1} 🏆" if idx == 0 else f"الأولوية #{idx+1}"
+    for idx, opp in enumerate(priority_opportunities[:3]):
+        rank_badge = f"الأولوية الأولى 🏆" if idx == 0 else f"الأولوية #{idx+1}"
+        border_color = "#FF007A" if idx == 0 else "#4F008C"
+        bg_color = "#FFF5F9" if idx == 0 else "#FFFFFF"
+        
         with p_cols[idx]:
             st.markdown(f"""
-                <div class="priority-card">
-                    <span class="priority-rank">{rank_label}</span>
-                    <h4 style="margin: 5px 0; color: #4F008C;">{opp['prod']}</h4>
-                    <p style="margin: 0; font-size: 13px; color: #555;">
-                        • تحتاج لبيع: <b>{opp['needed_units']} ڤاليو</b><br>
-                        • الشريحة القادمة: <b>{opp['target_tier']}%</b><br>
-                        • الزيادة بالعمولة: <b style="color: #28A745;">+{opp['extra_kd']:.2f} KD</b><br>
-                        • قيمة الـ Value الواحدة: <b>{opp['roi_per_value']:.2f} KD/value</b>
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
-else:
-    st.info("🌟 **أنت حالياً في أعلى شريحة ممكنة لجميع المنتجات!**")
-
-# Daily Tracker
-st.markdown("---")
-st.markdown("### 📈 Daily Target Tracker")
-now = datetime.now()
-current_day = now.day
-total_days = calendar.monthrange(now.year, now.month)[1]
-days_remaining = max(1, total_days - current_day)
-
-st.info(f"📅 **Today:** Day {current_day} of {total_days} ({now.strftime('%B %Y')}) | **Days Remaining:** {days_remaining} days")
-
-products_tracker = [
-    ("GA Voice", ach_ga_voice, target_ga_voice),
-    ("GA Data", ach_ga_data, target_ga_data),
-    ("Renew Voice", ach_renew_voice, target_renew_voice),
-    ("Renew Data", ach_renew_data, target_renew_data),
-    ("Zeed", ach_zeed, target_zeed),
-]
-
-tracker_cols = st.columns(5)
-for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
-    rem_needed = max(0, tgt - ach)
-    daily_req = rem_needed / days_remaining
-    with tracker_cols[idx]:
-        st.markdown(f"**{prod_name}**")
-        st.caption(f"Remaining: {rem_needed} units")
-        st.metric("Needed / Day", f"{daily_req:.1f}")
-
-# KPI Breakdown
-st.markdown("---")
-st.markdown("### 📋 Operational KPIs Score Breakdown (20%)")
-kpi_data = [
-    {"KPI": "STC Care", "Achieved Score": f"{kpi1*100:.0f}%", "Min Threshold": "60%", "Earned Weight": f"{kpi1_w*100:.2f}%", "Status": "✅ Qualified" if kpi1 >= 0.60 else "❌ Below Threshold"},
-    {"KPI": "W&P", "Achieved Score": f"{kpi2*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi2_w*100:.2f}%", "Status": "✅ Qualified" if kpi2 >= 0.75 else "❌ Below Threshold"},
-    {"KPI": "Accessories", "Achieved Score": f"{kpi3*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi3_w*100:.2f}%", "Status": "✅ Qualified" if kpi3 >= 0.75 else "❌ Below Threshold"},
-    {"KPI": "MNP", "Achieved Score": f"{kpi4*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi4_w*100:.2f}%", "Status": "✅ Qualified" if kpi4 >= 0.75 else "❌ Below Threshold"}
-]
-
-st.table(kpi_data)
+                <div style="
+                    background: {bg_color}; 
+                    border: 1px solid #E2D1F0; 
+                    border-top: 5px solid {border_color}; 
+                    border-radius: 14px; 
+                    padding: 18px; 
+                    margin-bottom: 15px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+                    direction: rtl;
+                    text-align: right;
+                    font-family: 'Inter', sans-serif;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span style="background: {border_color}; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">
+                            {rank_badge}
+                        </span>
+                    </div>
+                    
+                    <h3 style="margin: 8px 0 14px 0; color: #4F008C; font-size: 20px; font-weight: 800; text-align: right;">
+                        {opp['prod']}
+                    </h3>
+                    
+                    <div style="font-size: 14px; color: #333; line-height: 2;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
+                            <span>📌 <b>المطلوب:</b></span>
+                            <span style="color: #4F008C; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['needed_units']}</span> Values</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
+                            <span>🎯 <b>الشريحة القادمة:</b></span>
+                            <span style="font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['target_tier']}</span>%</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
+                            <span>💰 <b>الزيادة بالعمولة:</b></span>
+                            <span style="color: #28A745; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">+{opp['extra_kd']:.2f}</span> د.ك</span>
+                        </div>
+                        
+                        <div style="margin-top: 12px; background: #F8F9FA; padding: 10px; border-radius: 8px; border: 1px dashed #E2D1F0; display: flex; justify-content: space-between; align-items: center;">
+                            <span>⚡ <b>لكل Value واحدة:</b></span>
+                            <span style="color: #FF007A; font-weight: 800; font-size: 15px;"><span
