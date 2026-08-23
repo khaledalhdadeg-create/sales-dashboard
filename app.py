@@ -85,6 +85,16 @@ st.markdown("""
     .insight-info { background-color: #D1ECF1; border-left: 5px solid #17A2B8; color: #0C5460; }
     .insight-success { background-color: #D4EDDA; border-left: 5px solid #28A745; color: #155724; }
     
+    .priority-card {
+        background: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
+        padding: 16px; margin-bottom: 12px; border-right: 6px solid #FF007A;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .priority-rank {
+        background: #4F008C; color: white; padding: 3px 10px; border-radius: 12px;
+        font-weight: bold; font-size: 12px; display: inline-block; margin-bottom: 6px;
+    }
+
     .text-en { font-weight: 600; direction: ltr; text-align: left; margin-bottom: 6px; }
     .text-ar { font-weight: 600; direction: rtl; text-align: right; margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; }
     
@@ -348,7 +358,7 @@ st.markdown(f"""
 # Smart Priority Recommendation Engine (ترتيب الأولويات الذكي)
 # -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي")
+st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي لأعلى عائد")
 
 targets_map = {'GA Voice': target_ga_voice, 'GA Data': target_ga_data, 'Renew Voice': target_renew_voice, 'Renew Data': target_renew_data, 'Zeed': target_zeed}
 achieved_map = {'GA Voice': ach_ga_voice, 'GA Data': ach_ga_data, 'Renew Voice': ach_renew_voice, 'Renew Data': ach_renew_data, 'Zeed': ach_zeed}
@@ -375,7 +385,7 @@ for prod, weight in weighted_ach.items():
                 extra_kd = next_tier_payout - current_earned
 
                 if needed_units > 0 and extra_kd > 0:
-                    roi_per_value = extra_kd / needed_units
+                    roi_per_value = extra_kd / needed_units  # عائد كل value واحدة
                     priority_opportunities.append({
                         "prod": prod,
                         "needed_units": needed_units,
@@ -385,56 +395,181 @@ for prod, weight in weighted_ach.items():
                     })
                 break
 
-# فرز الفرص حسب الأعلى أولوية
+# فرز الفرص حسب أعلى عائد لكل value
 priority_opportunities.sort(key=lambda x: x["roi_per_value"], reverse=True)
 
 if priority_opportunities:
     p_cols = st.columns(min(3, len(priority_opportunities)))
-    for idx, opp in enumerate(priority_opportunities[:3]):
-        rank_badge = f"الأولوية الأولى 🏆" if idx == 0 else f"الأولوية #{idx+1}"
-        border_color = "#FF007A" if idx == 0 else "#4F008C"
-        bg_color = "#FFF5F9" if idx == 0 else "#FFFFFF"
-        
+    for idx, opp in enumerate(priority_opportunities[:3]):  # عرض أفضل 3 أولويات
+        rank_label = f"الأولوية #{idx+1} 🏆" if idx == 0 else f"الأولوية #{idx+1}"
         with p_cols[idx]:
             st.markdown(f"""
-                <div style="
-                    background: {bg_color}; 
-                    border: 1px solid #E2D1F0; 
-                    border-top: 5px solid {border_color}; 
-                    border-radius: 14px; 
-                    padding: 18px; 
-                    margin-bottom: 15px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-                    direction: rtl;
-                    text-align: right;
-                    font-family: 'Inter', sans-serif;">
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="background: {border_color}; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">
-                            {rank_badge}
-                        </span>
-                    </div>
-                    
-                    <h3 style="margin: 8px 0 14px 0; color: #4F008C; font-size: 20px; font-weight: 800; text-align: right;">
-                        {opp['prod']}
-                    </h3>
-                    
-                    <div style="font-size: 14px; color: #333; line-height: 2;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>📌 <b>المطلوب:</b></span>
-                            <span style="color: #4F008C; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['needed_units']}</span> Values</span>
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>🎯 <b>الشريحة القادمة:</b></span>
-                            <span style="font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['target_tier']}</span>%</span>
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>💰 <b>الزيادة بالعمولة:</b></span>
-                            <span style="color: #28A745; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">+{opp['extra_kd']:.2f}</span> د.ك</span>
-                        </div>
-                        
-                        <div style="margin-top: 12px; background: #F8F9FA; padding: 10px; border-radius: 8px; border: 1px dashed #E2D1F0; display: flex; justify-content: space-between; align-items: center;">
-                            <span>⚡ <b>لكل Value واحدة:</b></span>
-                            <span style="color: #FF007A; font-weight: 800; font-size: 15px;"><span
+                <div class="priority-card">
+                    <span class="priority-rank">{rank_label}</span>
+                    <h4 style="margin: 5px 0; color: #4F008C;">{opp['prod']}</h4>
+                    <p style="margin: 0; font-size: 13px; color: #555;">
+                        • تحتاج لبيع: <b>{opp['needed_units']} ڤاليو</b><br>
+                        • الشريحة القادمة: <b>{opp['target_tier']}%</b><br>
+                        • الزيادة بالعمولة: <b style="color: #28A745;">+{opp['extra_kd']:.2f} KD</b><br>
+                        • قيمة الـ Value الواحدة: <b>{opp['roi_per_value']:.2f} KD/value</b>
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
+else:
+    st.info("🌟 **أنت حالياً في أعلى شريحة ممكنة لجميع المنتجات!**")
+
+# Daily Tracker
+st.markdown("---")
+st.markdown("### 📈 Daily Target Tracker")
+now = datetime.now()
+current_day = now.day
+total_days = calendar.monthrange(now.year, now.month)[1]
+days_remaining = max(1, total_days - current_day)
+
+st.info(f"📅 **Today:** Day {current_day} of {total_days} ({now.strftime('%B %Y')}) | **Days Remaining:** {days_remaining} days")
+
+products_tracker = [
+    ("GA Voice", ach_ga_voice, target_ga_voice),
+    ("GA Data", ach_ga_data, target_ga_data),
+    ("Renew Voice", ach_renew_voice, target_renew_voice),
+    ("Renew Data", ach_renew_data, target_renew_data),
+    ("Zeed", ach_zeed, target_zeed),
+]
+
+tracker_cols = st.columns(5)
+for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
+    rem_needed = max(0, tgt - ach)
+    daily_req = rem_needed / days_remaining
+    with tracker_cols[idx]:
+        st.markdown(f"**{prod_name}**")
+        st.caption(f"Remaining: {rem_needed} units")
+        st.metric("Needed / Day", f"{daily_req:.1f}")
+
+# KPI Breakdown
+st.markdown("---")
+st.markdown("### 📋 Operational KPIs Score Breakdown (20%)")
+kpi_data = [
+    {"KPI": "STC Care", "Achieved Score": f"{kpi1*100:.0f}%", "Min Threshold": "60%", "Earned Weight": f"{kpi1_w*100:.2f}%", "Status": "✅ Qualified" if kpi1 >= 0.60 else "❌ Below Threshold"},
+    {"KPI": "W&P", "Achieved Score": f"{kpi2*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi2_w*100:.2f}%", "Status": "✅ Qualified" if kpi2 >= 0.75 else "❌ Below Threshold"},
+    {"KPI": "Accessories", "Achieved Score": f"{kpi3*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi3_w*100:.2f}%", "Status": "✅ Qualified" if kpi3 >= 0.75 else "❌ Below Threshold"},
+    {"KPI": "MNP", "Achieved Score": f"{kpi4*100:.0f}%", "Min Threshold": "75%", "Earned Weight": f"{kpi4_w*100:.2f}%", "Status": "✅ Qualified" if kpi4 >= 0.75 else "❌ Below Threshold"},
+]
+st.table(kpi_data)
+
+# Smart Sales Insights & Advice
+st.markdown("---")
+st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية بالأرقام")
+
+insights = []
+
+if min_weighted_ach < 0.75:
+    weak_details = []
+    for prod, weight in weighted_ach.items():
+        if weight < 0.75:
+            tgt = targets_map[prod]
+            ach = achieved_map[prod]
+            needed_raw = (0.75 - total_kpi_weight) / 0.8
+            needed_units = max(1, int(needed_raw * tgt) - ach + 1)
+            weak_details.append(f"<b>{prod}</b>: تحتاج إلى <b>{needed_units} ڤاليو</b>")
+
+    weak_text_ar = "<br>• ".join(weak_details)
+    weak_text_en = ", ".join([f"{p}" for p in weak_details])
+
+    if avg_weighted_ach >= 0.75:
+        insights.append({
+            "style": "insight-warning",
+            "en": f"⚠️ <b>Unlock Standard Scheme:</b> You are currently on Bonus. Complete the following values to reach 75% across all products:<br>• {weak_text_en}",
+            "ar": f"⚠️ <b>لتفعيل العمولة الأساسية (Standard):</b> أنت مؤهل حالياً لـ Bonus فقط. تحتاج للوصول لـ 75% في جميع المنتجات إلى تحقيق:<br>• {weak_text_ar}"
+        })
+    else:
+        insights.append({
+            "style": "insight-error",
+            "en": f"🔴 <b>Ineligible Status:</b> You need to achieve the following values to reach the minimum payout threshold (75%):<br>• {weak_text_en}",
+            "ar": f"🔴 <b>تنبيه عدم الاستحقاق (0 KD):</b> أنت أقل من 75%. تحتاج لتحقيق الـ Values التالية للوصول للحد الأدنى للعمولة:<br>• {weak_text_ar}"
+        })
+
+failed_kpi_details = []
+if kpi1 < 0.60: failed_kpi_details.append(f"<b>STC Care</b> (تحتاج زيادة {int((0.60 - kpi1)*100)}%)")
+if kpi2 < 0.75: failed_kpi_details.append(f"<b>W&P</b> (تحتاج زيادة {int((0.75 - kpi2)*100)}%)")
+if kpi3 < 0.75: failed_kpi_details.append(f"<b>Accessories</b> (تحتاج زيادة {int((0.75 - kpi3)*100)}%)")
+if kpi4 < 0.75: failed_kpi_details.append(f"<b>MNP</b> (تحتاج زيادة {int((0.75 - kpi4)*100)}%)")
+
+if failed_kpi_details:
+    insights.append({
+        "style": "insight-info",
+        "en": f"🎯 <b>KPI Cash Boost:</b> Raise these KPIs to unlock up to 20% weight:<br>• " + "<br>• ".join(failed_kpi_details),
+        "ar": f"🎯 <b>فرصة زيادة الموزون للـ KPIs:</b> قم بزيادة المؤشرات التالية للحصول على وزن أكبر ورفع عمولتك مباشرة:<br>• " + "<br>• ".join(failed_kpi_details)
+    })
+
+if insights:
+    for item in insights:
+        st.markdown(f"""
+            <div class="insight-box {item['style']}">
+                <div class="text-en">{item['en']}</div>
+                <div class="text-ar">{item['ar']}</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+# Printable HTML / PDF Generator
+st.markdown("---")
+st.markdown("### 📄 Export Performance Report | تصدير تقرير الأداء")
+
+html_report = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>stc Sales Incentive Report</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; padding: 30px; background: #fff; color: #333; }}
+        .header {{ background: #4F008C; color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }}
+        .card {{ background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }}
+        .total {{ background: #FF007A; color: #fff; font-size: 24px; font-weight: bold; padding: 15px; border-radius: 8px; text-align: center; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+        th, td {{ border: 1px solid #ddd; padding: 10px; text-align: left; }}
+        th {{ background: #4F008C; color: white; }}
+        @media print {{ .print-btn {{ display: none; }} }}
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()" style="background:#FF007A; color:white; padding:12px 24px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:20px;">
+        🖨️ Save as PDF / Print Report
+    </button>
+    <div class="header">
+        <h1>stc Sales Incentive Performance Report</h1>
+        <p>Generated Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
+    </div>
+    
+    <div class="card">
+        <h3>Qualification Status: {eligibility_status}</h3>
+        <p>Earned KPI Weight: {total_kpi_weight*100:.1f}% | Min Weighted Ach: {min_weighted_ach*100:.1f}% | Avg Weighted Ach: {avg_weighted_ach*100:.1f}%</p>
+    </div>
+
+    <div class="total">Total Final Payout: {total_final_payout:.2f} KD</div>
+
+    <h3>Sales Achievement Breakdown</h3>
+    <table>
+        <tr><th>Product</th><th>Achieved</th><th>Target</th><th>Raw Ach %</th><th>Weighted Ach %</th></tr>
+        <tr><td>GA Voice</td><td>{ach_ga_voice}</td><td>{target_ga_voice}</td><td>{raw_ga_voice*100:.1f}%</td><td>{weighted_ach['GA Voice']*100:.1f}%</td></tr>
+        <tr><td>GA Data</td><td>{ach_ga_data}</td><td>{target_ga_data}</td><td>{raw_ga_data*100:.1f}%</td><td>{weighted_ach['GA Data']*100:.1f}%</td></tr>
+        <tr><td>Renew Voice</td><td>{ach_renew_voice}</td><td>{target_renew_voice}</td><td>{raw_renew_voice*100:.1f}%</td><td>{weighted_ach['Renew Voice']*100:.1f}%</td></tr>
+        <tr><td>Renew Data</td><td>{ach_renew_data}</td><td>{target_renew_data}</td><td>{raw_renew_data*100:.1f}%</td><td>{weighted_ach['Renew Data']*100:.1f}%</td></tr>
+        <tr><td>Zeed</td><td>{ach_zeed}</td><td>{target_zeed}</td><td>{raw_zeed*100:.1f}%</td><td>{weighted_ach['Zeed']*100:.1f}%</td></tr>
+    </table>
+
+    <script>
+        window.onload = function() {{ window.print(); }};
+    </script>
+</body>
+</html>"""
+
+exp_col1, exp_col2 = st.columns([0.7, 0.3])
+with exp_col1:
+    st.write("اضغط على الزر لتنزيل ملف التقرير. بمجرد فتح الملف على جهازك سيتكفل المتصفح بفتح نافذة التصدير لـ **PDF** فوراً.")
+with exp_col2:
+    st.download_button(
+        label="📥 Download PDF Report",
+        data=html_report,
+        file_name=f"stc_Incentive_Report_{datetime.now().strftime('%Y_%m_%d')}.html",
+        mime="text/html",
+        use_container_width=True
+    )
