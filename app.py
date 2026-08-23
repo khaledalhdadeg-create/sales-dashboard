@@ -4,16 +4,18 @@ import os
 import calendar
 from datetime import datetime
 
-# Page Configuration
+# -------------------------------------------------------------
+# إعدادات الصفحة الأساسية
+# -------------------------------------------------------------
 st.set_page_config(
-    page_title="stc Sales Incentive Calculator - Avenues Branch 4", 
+    page_title="stc Sales Incentive Calculator - Avenues Branch", 
     layout="wide", 
     page_icon="📱",
     initial_sidebar_state="collapsed"
 )
 
 # -------------------------------------------------------------
-# إدارة ملف التارجت العام (Persistence File)
+# إدارة ملف الحفظ المؤقت والتارجت (Persistence)
 # -------------------------------------------------------------
 TARGETS_FILE = "targets.json"
 
@@ -35,12 +37,17 @@ def load_targets():
     return DEFAULT_TARGETS
 
 def save_targets(data):
-    with open(TARGETS_FILE, "w") as f:
-        json.dump(data, f)
+    try:
+        with open(TARGETS_FILE, "w") as f:
+            json.dump(data, f)
+    except Exception:
+            pass
 
 current_targets = load_targets()
 
-# Custom CSS
+# -------------------------------------------------------------
+# تنسيقات التصميم المخصصة (CSS)
+# -------------------------------------------------------------
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -83,7 +90,6 @@ st.markdown("""
     .insight-warning { background-color: #FFF3CD; border-left: 5px solid #FFC107; color: #856404; }
     .insight-error { background-color: #F8D7DA; border-left: 5px solid #DC3545; color: #721C24; }
     .insight-info { background-color: #D1ECF1; border-left: 5px solid #17A2B8; color: #0C5460; }
-    .insight-success { background-color: #D4EDDA; border-left: 5px solid #28A745; color: #155724; }
     
     .priority-card {
         background: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
@@ -103,7 +109,6 @@ st.markdown("""
         padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(79,0,140,0.05);
     }
 
-    /* Pacing Gauge Cards Style */
     .pacing-card {
         background: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
         padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
@@ -113,37 +118,22 @@ st.markdown("""
     .pacing-lagging { border-top: 5px solid #DC3545; }
     .pacing-ahead { border-top: 5px solid #17A2B8; }
 
-    /* Custom Progress Bar Style */
     .progress-wrapper {
-        background-color: #E9ECEF;
-        border-radius: 10px;
-        height: 18px;
-        width: 100%;
-        overflow: hidden;
-        margin-top: 8px;
-        margin-bottom: 15px;
+        background-color: #E9ECEF; border-radius: 10px; height: 18px; width: 100%;
+        overflow: hidden; margin-top: 8px; margin-bottom: 15px;
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
     }
     .progress-bar-inner {
-        height: 100%;
-        border-radius: 10px;
-        transition: width 0.4s ease-in-out;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding-right: 8px;
-        color: white;
-        font-size: 10px;
-        font-weight: bold;
+        height: 100%; border-radius: 10px; transition: width 0.4s ease-in-out;
+        display: flex; align-items: center; justify-content: flex-end; padding-right: 8px;
+        color: white; font-size: 10px; font-weight: bold;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# دالة رسم شريط التقدم المرئي
 def render_progress_bar(ratio):
     pct = ratio * 100
     display_pct = min(pct, 100)
-    
     if pct < 75:
         color = "linear-gradient(90deg, #EA4335, #D93025)"
     elif pct < 100:
@@ -161,18 +151,22 @@ def render_progress_bar(ratio):
         </div>
     """, unsafe_allow_html=True)
 
-# Main Header
+# -------------------------------------------------------------
+# الترويسة الرئيسية
+# -------------------------------------------------------------
 st.markdown("""
     <div class="stc-header">
         <div>
             <h1>stc | Sales Incentive Calculator</h1>
-            <p>Interactive commission & bonus dashboard — Avenues Branch 4</p>
+            <p>Interactive commission & bonus dashboard — The Avenues Branch</p>
         </div>
         <div class="stc-badge">Sales Incentive</div>
     </div>
 """, unsafe_allow_html=True)
 
-# Admin Settings Panel
+# -------------------------------------------------------------
+# لوحة التحكم الإدارية (Admin Panel)
+# -------------------------------------------------------------
 top_col1, top_col2 = st.columns([0.85, 0.15])
 with top_col2:
     show_admin = st.toggle("⚙️ Admin", value=False)
@@ -196,26 +190,20 @@ if show_admin:
             with col_a3:
                 new_zeed = st.number_input("Target Zeed:", value=int(current_targets["target_zeed"]))
             
-            save_btn = st.form_submit_button("💾 Save Targets For All Users")
-            
+            save_btn = st.form_submit_button("💾 Save Targets")
             if save_btn:
                 updated_data = {
-                    "target_ga_voice": new_ga_voice,
-                    "target_ga_data": new_ga_data,
-                    "target_renew_voice": new_renew_voice,
-                    "target_renew_data": new_renew_data,
+                    "target_ga_voice": new_ga_voice, "target_ga_data": new_ga_data,
+                    "target_renew_voice": new_renew_voice, "target_renew_data": new_renew_data,
                     "target_zeed": new_zeed
                 }
                 save_targets(updated_data)
                 st.success("✅ Targets updated globally!")
                 st.rerun()
-
         target_ga_voice, target_ga_data, target_renew_voice, target_renew_data, target_zeed = new_ga_voice, new_ga_data, new_renew_voice, new_renew_data, new_zeed
     else:
         if admin_pwd != "":
             st.error("🔒 Incorrect Password")
-        else:
-            st.info("🔒 Enter password to edit targets.")
         target_ga_voice = current_targets["target_ga_voice"]
         target_ga_data = current_targets["target_ga_data"]
         target_renew_voice = current_targets["target_renew_voice"]
@@ -229,41 +217,38 @@ else:
     target_renew_data = current_targets["target_renew_data"]
     target_zeed = current_targets["target_zeed"]
 
-# Layout Inputs
+# -------------------------------------------------------------
+# إدخال المبيعات والمؤشرات
+# -------------------------------------------------------------
 main_col1, main_col2 = st.columns([1.2, 1])
 
 with main_col1:
     st.markdown("### 1️⃣ Sales Achievement & Target Progress")
     
-    # GA Voice
     c1, c2 = st.columns([2, 1])
     with c1: ach_ga_voice = st.number_input("Achieved GA Voice:", min_value=0, value=100)
     raw_ga_voice = (ach_ga_voice / target_ga_voice) if target_ga_voice > 0 else 0
     with c2: st.metric("Raw Ach %", f"{raw_ga_voice*100:.1f}%")
     render_progress_bar(raw_ga_voice)
 
-    # GA Data
     c1, c2 = st.columns([2, 1])
     with c1: ach_ga_data = st.number_input("Achieved GA Data:", min_value=0, value=45)
     raw_ga_data = (ach_ga_data / target_ga_data) if target_ga_data > 0 else 0
     with c2: st.metric("Raw Ach %", f"{raw_ga_data*100:.1f}%")
     render_progress_bar(raw_ga_data)
 
-    # Renew Voice
     c1, c2 = st.columns([2, 1])
     with c1: ach_renew_voice = st.number_input("Achieved Renewal Voice:", min_value=0, value=32)
     raw_renew_voice = (ach_renew_voice / target_renew_voice) if target_renew_voice > 0 else 0
     with c2: st.metric("Raw Ach %", f"{raw_renew_voice*100:.1f}%")
     render_progress_bar(raw_renew_voice)
 
-    # Renew Data
     c1, c2 = st.columns([2, 1])
     with c1: ach_renew_data = st.number_input("Achieved Renewal Data:", min_value=0, value=15)
     raw_renew_data = (ach_renew_data / target_renew_data) if target_renew_data > 0 else 0
     with c2: st.metric("Raw Ach %", f"{raw_renew_data*100:.1f}%")
     render_progress_bar(raw_renew_data)
 
-    # Zeed
     c1, c2 = st.columns([2, 1])
     with c1: ach_zeed = st.number_input("Achieved Zeed:", min_value=0, value=20)
     raw_zeed = (ach_zeed / target_zeed) if target_zeed > 0 else 0
@@ -277,21 +262,16 @@ with main_col2:
     kpi3 = st.slider("KPI-3: Accessories (%)", 0, 100, 90) / 100
     kpi4 = st.slider("KPI-4: MNP (%)", 0, 100, 70) / 100
 
-# Calculations
+# -------------------------------------------------------------
+# الحسابات المالية والعمولات
+# -------------------------------------------------------------
 kpi1_w = (kpi1 * 0.05) if kpi1 >= 0.60 else 0
 kpi2_w = (kpi2 * 0.05) if kpi2 >= 0.75 else 0
 kpi3_w = (kpi3 * 0.05) if kpi3 >= 0.75 else 0
 kpi4_w = (kpi4 * 0.05) if kpi4 >= 0.75 else 0
 total_kpi_weight = kpi1_w + kpi2_w + kpi3_w + kpi4_w
 
-raw_ach = {
-    'GA Voice': raw_ga_voice,
-    'GA Data': raw_ga_data,
-    'Renew Voice': raw_renew_voice,
-    'Renew Data': raw_renew_data,
-    'Zeed': raw_zeed,
-}
-
+raw_ach = {'GA Voice': raw_ga_voice, 'GA Data': raw_ga_data, 'Renew Voice': raw_renew_voice, 'Renew Data': raw_renew_data, 'Zeed': raw_zeed}
 weighted_ach = {k: (v * 0.8) + total_kpi_weight for k, v in raw_ach.items()}
 min_weighted_ach = min(weighted_ach.values())
 avg_weighted_ach = sum(weighted_ach.values()) / len(weighted_ach)
@@ -339,7 +319,9 @@ else:
 
 total_final_payout = standard_payout + bonus_payout
 
-# Summary
+# -------------------------------------------------------------
+# ملخص النتائج والاستحقاق
+# -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📊 Qualification & Payout Summary")
 
@@ -352,9 +334,9 @@ else:
 
 res_col1, res_col2, res_col3, res_col4 = st.columns(4)
 with res_col1: st.metric("Earned KPI Weight", f"{total_kpi_weight*100:.1f}%")
-with res_col2: st.metric("Standard Scheme Payout", f"{standard_payout:.2f} KD")
-with res_col3: st.metric("Bonus Scheme Payout", f"{bonus_payout:.2f} KD")
-with res_col4: st.metric("Min / Avg Weighted Ach %", f"{min_weighted_ach*100:.1f}% / {avg_weighted_ach*100:.1f}%")
+with res_col2: st.metric("Standard Payout", f"{standard_payout:.2f} KD")
+with res_col3: st.metric("Bonus Payout", f"{bonus_payout:.2f} KD")
+with res_col4: st.metric("Min / Avg Ach %", f"{min_weighted_ach*100:.1f}% / {avg_weighted_ach*100:.1f}%")
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown(f"""
@@ -365,7 +347,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# Smart Priority Recommendation Engine (ترتيب الأولويات الذكي)
+# محرك الأولويات الذكي (Smart Priority Engine)
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي لأعلى عائد")
@@ -397,10 +379,8 @@ for prod, weight in weighted_ach.items():
                 if needed_units > 0 and extra_kd > 0:
                     roi_per_value = extra_kd / needed_units
                     priority_opportunities.append({
-                        "prod": prod,
-                        "needed_units": needed_units,
-                        "target_tier": int(t * 100),
-                        "extra_kd": extra_kd,
+                        "prod": prod, "needed_units": needed_units,
+                        "target_tier": int(t * 100), "extra_kd": extra_kd,
                         "roi_per_value": roi_per_value
                     })
                 break
@@ -428,7 +408,7 @@ else:
     st.info("🌟 **أنت حالياً في أعلى شريحة ممكنة لجميع المنتجات!**")
 
 # -------------------------------------------------------------
-# مؤشر سرعة الإنجاز مقابل الوقت (Pacing & Velocity Gauge)
+# مؤشر سرعة الإنجاز (Pacing & Velocity Gauge)
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### ⏱️ Pacing & Velocity Gauge | مؤشر سرعة الإنجاز مقابل الوقت")
@@ -481,7 +461,9 @@ for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
             </div>
         """, unsafe_allow_html=True)
 
-# KPI Breakdown
+# -------------------------------------------------------------
+# تفاصيل الـ KPIs والتنبيهات الذكية
+# -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📋 Operational KPIs Score Breakdown (20%)")
 kpi_data = [
@@ -492,12 +474,10 @@ kpi_data = [
 ]
 st.table(kpi_data)
 
-# Smart Sales Insights & Advice
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية بالأرقام")
 
 insights = []
-
 critical_jumps = []
 for opp in priority_opportunities:
     if opp["needed_units"] == 1:
@@ -507,61 +487,8 @@ if critical_jumps:
     jumps_text = "<br>• ".join(critical_jumps)
     insights.append({
         "style": "insight-warning",
-        "en": f"🚨 <b>THRESHOLD JUMP ALERT!</b> You are only <b>1 unit away</b> from a major tier upgrade on:<br>• {jumps_text}. Close this sale immediately to maximize your commission!",
-        "ar": f"🚨 <b>تنبيه قفزة الشرائح (فجوة وحدة واحدة):</b> أنت على بعد <b>بيع وحدة واحدة فقط (1 Value)</b> للانتقال لشريحة أعلى في:<br>• {jumps_text}. أنجز هذه البيعة فوراً لتعظيم عمولتك!"
-    })
-
-lagging_prods = []
-for prod_name, ach, tgt in products_tracker:
-    ach_pct = (ach / tgt) if tgt > 0 else 0
-    if ach_pct < (time_elapsed_pct - 0.05):
-        lagging_prods.append(f"<b>{prod_name}</b> (معدل الإنجاز {ach_pct*100:.1f}% مقابل مرور {(time_elapsed_pct)*100:.1f}% من الشهر)")
-
-if lagging_prods:
-    lagging_text = "<br>• ".join(lagging_prods)
-    insights.append({
-        "style": "insight-error",
-        "en": f"⚠️ <b>Velocity Warning:</b> The following products are lagging behind the monthly time pace. Consider increasing daily efforts:<br>• " + "<br>• ".join([p.split('(')[0] for p in lagging_prods]),
-        "ar": f"⚠️ <b>تنبيه سرعة الإنجاز (Pacing):</b> المنتجات التالية تسير بمعدل أبطأ من الوقت المنقضي من الشهر، وتتطلب تكثيف الجهود:<br>• {lagging_text}"
-    })
-
-if min_weighted_ach < 0.75:
-    weak_details = []
-    for prod, weight in weighted_ach.items():
-        if weight < 0.75:
-            tgt = targets_map[prod]
-            ach = achieved_map[prod]
-            needed_raw = (0.75 - total_kpi_weight) / 0.8
-            needed_units = max(1, int(needed_raw * tgt) - ach + 1)
-            weak_details.append(f"<b>{prod}</b>: تحتاج إلى <b>{needed_units} ڤاليو</b>")
-
-    weak_text_ar = "<br>• ".join(weak_details)
-    weak_text_en = ", ".join([f"{p}" for p in weak_details])
-
-    if avg_weighted_ach >= 0.75:
-        insights.append({
-            "style": "insight-warning",
-            "en": f"⚠️ <b>Unlock Standard Scheme:</b> You are currently on Bonus. Complete the following values to reach 75% across all products:<br>• {weak_text_en}",
-            "ar": f"⚠️ <b>لتفعيل العمولة الأساسية (Standard):</b> أنت مؤهل حالياً لـ Bonus فقط. تحتاج للوصول لـ 75% في جميع المنتجات إلى تحقيق:<br>• {weak_text_ar}"
-        })
-    else:
-        insights.append({
-            "style": "insight-error",
-            "en": f"🔴 <b>Ineligible Status:</b> You need to achieve the following values to reach the minimum payout threshold (75%):<br>• {weak_text_en}",
-            "ar": f"🔴 <b>تنبيه عدم الاستحقاق (0 KD):</b> أنت أقل من 75%. تحتاج لتحقيق الـ Values التالية للوصول للحد الأدنى للعمولة:<br>• {weak_text_ar}"
-        })
-
-failed_kpi_details = []
-if kpi1 < 0.60: failed_kpi_details.append(f"<b>STC Care</b> (تحتاج زيادة {int((0.60 - kpi1)*100)}%)")
-if kpi2 < 0.75: failed_kpi_details.append(f"<b>W&P</b> (تحتاج زيادة {int((0.75 - kpi2)*100)}%)")
-if kpi3 < 0.75: failed_kpi_details.append(f"<b>Accessories</b> (تحتاج زيادة {int((0.75 - kpi3)*100)}%)")
-if kpi4 < 0.75: failed_kpi_details.append(f"<b>MNP</b> (تحتاج زيادة {int((0.75 - kpi4)*100)}%)")
-
-if failed_kpi_details:
-    insights.append({
-        "style": "insight-info",
-        "en": f"🎯 <b>KPI Cash Boost:</b> Raise these KPIs to unlock up to 20% weight:<br>• " + "<br>• ".join(failed_kpi_details),
-        "ar": f"🎯 <b>فرصة زيادة الموزون للـ KPIs:</b> قم بزيادة المؤشرات التالية للحصول على وزن أكبر ورفع عمولتك مباشرة:<br>• " + "<br>• ".join(failed_kpi_details)
+        "en": f"🚨 <b>THRESHOLD JUMP ALERT!</b> You are only <b>1 unit away</b> from a major tier upgrade on:<br>• {jumps_text}.",
+        "ar": f"🚨 <b>تنبيه قفزة الشرائح (فجوة وحدة واحدة):</b> أنت على بعد <b>بيع وحدة واحدة فقط (1 Value)</b> للانتقال لشريحة أعلى في:<br>• {jumps_text}. أنجز هذه البيعة فوراً!"
     })
 
 if insights:
@@ -573,7 +500,9 @@ if insights:
             </div>
         """, unsafe_allow_html=True)
 
-# Printable HTML / PDF Generator
+# -------------------------------------------------------------
+# تصدير التقرير (HTML / PDF)
+# -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📄 Export Performance Report | تصدير تقرير الأداء")
 
@@ -581,7 +510,7 @@ html_report = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>stc Sales Incentive Report - Avenues Branch 4</title>
+    <title>stc Sales Incentive Report - The Avenues Branch</title>
     <style>
         body {{ font-family: Arial, sans-serif; padding: 30px; background: #fff; color: #333; }}
         .header {{ background: #4F008C; color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }}
@@ -598,41 +527,26 @@ html_report = f"""<!DOCTYPE html>
         🖨️ Save as PDF / Print Report
     </button>
     <div class="header">
-        <h1>stc Sales Incentive Performance Report (Avenues Branch 4)</h1>
+        <h1>stc Sales Incentive Performance Report (The Avenues Branch)</h1>
         <p>Generated Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
     </div>
-    
     <div class="card">
         <h3>Qualification Status: {eligibility_status}</h3>
-        <p>Earned KPI Weight: {total_kpi_weight*100:.1f}% | Min Weighted Ach: {min_weighted_ach*100:.1f}% | Avg Weighted Ach: {avg_weighted_ach*100:.1f}%</p>
+        <p>Earned KPI Weight: {total_kpi_weight*100:.1f}% | Min Weighted Ach: {min_weighted_ach*100:.1f}%</p>
     </div>
-
     <div class="total">Total Final Payout: {total_final_payout:.2f} KD</div>
-
-    <h3>Sales Achievement Breakdown</h3>
-    <table>
-        <tr><th>Product</th><th>Achieved</th><th>Target</th><th>Raw Ach %</th><th>Weighted Ach %</th></tr>
-        <tr><td>GA Voice</td><td>{ach_ga_voice}</td><td>{target_ga_voice}</td><td>{raw_ga_voice*100:.1f}%</td><td>{weighted_ach['GA Voice']*100:.1f}%</td></tr>
-        <tr><td>GA Data</td><td>{ach_ga_data}</td><td>{target_ga_data}</td><td>{raw_ga_data*100:.1f}%</td><td>{weighted_ach['GA Data']*100:.1f}%</td></tr>
-        <tr><td>Renew Voice</td><td>{ach_renew_voice}</td><td>{target_renew_voice}</td><td>{raw_renew_voice*100:.1f}%</td><td>{weighted_ach['Renew Voice']*100:.1f}%</td></tr>
-        <tr><td>Renew Data</td><td>{ach_renew_data}</td><td>{target_renew_data}</td><td>{raw_renew_data*100:.1f}%</td><td>{weighted_ach['Renew Data']*100:.1f}%</td></tr>
-        <tr><td>Zeed</td><td>{ach_zeed}</td><td>{target_zeed}</td><td>{raw_zeed*100:.1f}%</td><td>{weighted_ach['Zeed']*100:.1f}%</td></tr>
-    </table>
-
-    <script>
-        window.onload = function() {{ window.print(); }};
-    </script>
+    <script>window.onload = function() {{ window.print(); }};</script>
 </body>
 </html>"""
 
 exp_col1, exp_col2 = st.columns([0.7, 0.3])
 with exp_col1:
-    st.write("اضغط على الزر لتنزيل ملف التقرير الخاص بـ **Avenues Branch 4** مع إمكانية حفظه بصيغة **PDF**.")
+    st.write("اضغط على الزر لتنزيل ملف التقرير الخاص بـ **The Avenues Branch** بصيغة **PDF**.")
 with exp_col2:
     st.download_button(
         label="📥 Download PDF Report",
         data=html_report,
-        file_name=f"stc_Incentive_Report_Avenues4_{datetime.now().strftime('%Y_%m_%d')}.html",
+        file_name=f"stc_Incentive_Report_Avenues_{datetime.now().strftime('%Y_%m_%d')}.html",
         mime="text/html",
         use_container_width=True
     )
