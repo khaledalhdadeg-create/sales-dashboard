@@ -85,6 +85,16 @@ st.markdown("""
     .insight-info { background-color: #D1ECF1; border-left: 5px solid #17A2B8; color: #0C5460; }
     .insight-success { background-color: #D4EDDA; border-left: 5px solid #28A745; color: #155724; }
     
+    .priority-card {
+        background: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
+        padding: 16px; margin-bottom: 12px; border-right: 6px solid #FF007A;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .priority-rank {
+        background: #4F008C; color: white; padding: 3px 10px; border-radius: 12px;
+        font-weight: bold; font-size: 12px; display: inline-block; margin-bottom: 6px;
+    }
+
     .text-en { font-weight: 600; direction: ltr; text-align: left; margin-bottom: 6px; }
     .text-ar { font-weight: 600; direction: rtl; text-align: right; margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; }
     
@@ -348,7 +358,7 @@ st.markdown(f"""
 # Smart Priority Recommendation Engine (ترتيب الأولويات الذكي)
 # -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي")
+st.markdown("### 🎯 Smart Priority Recommendation | ترتيب الأولويات الذكي لأعلى عائد")
 
 targets_map = {'GA Voice': target_ga_voice, 'GA Data': target_ga_data, 'Renew Voice': target_renew_voice, 'Renew Data': target_renew_data, 'Zeed': target_zeed}
 achieved_map = {'GA Voice': ach_ga_voice, 'GA Data': ach_ga_data, 'Renew Voice': ach_renew_voice, 'Renew Data': ach_renew_data, 'Zeed': ach_zeed}
@@ -375,7 +385,7 @@ for prod, weight in weighted_ach.items():
                 extra_kd = next_tier_payout - current_earned
 
                 if needed_units > 0 and extra_kd > 0:
-                    roi_per_value = extra_kd / needed_units
+                    roi_per_value = extra_kd / needed_units  # عائد كل value واحدة
                     priority_opportunities.append({
                         "prod": prod,
                         "needed_units": needed_units,
@@ -385,65 +395,28 @@ for prod, weight in weighted_ach.items():
                     })
                 break
 
-# فرز الفرص حسب الأعلى أولوية
+# فرز الفرص حسب أعلى عائد لكل value
 priority_opportunities.sort(key=lambda x: x["roi_per_value"], reverse=True)
 
 if priority_opportunities:
     p_cols = st.columns(min(3, len(priority_opportunities)))
-    for idx, opp in enumerate(priority_opportunities[:3]):
-        rank_badge = f"الأولوية الأولى 🏆" if idx == 0 else f"الأولوية #{idx+1}"
-        border_color = "#FF007A" if idx == 0 else "#4F008C"
-        bg_color = "#FFF5F9" if idx == 0 else "#FFFFFF"
-        
+    for idx, opp in enumerate(priority_opportunities[:3]):  # عرض أفضل 3 أولويات
+        rank_label = f"الأولوية #{idx+1} 🏆" if idx == 0 else f"الأولوية #{idx+1}"
         with p_cols[idx]:
             st.markdown(f"""
-                <div style="
-                    background: {bg_color}; 
-                    border: 1px solid #E2D1F0; 
-                    border-top: 5px solid {border_color}; 
-                    border-radius: 14px; 
-                    padding: 18px; 
-                    margin-bottom: 15px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-                    direction: rtl;
-                    text-align: right;
-                    font-family: 'Inter', sans-serif;">
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="background: {border_color}; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">
-                            {rank_badge}
-                        </span>
-                    </div>
-                    
-                    <h3 style="margin: 8px 0 14px 0; color: #4F008C; font-size: 20px; font-weight: 800; text-align: right;">
-                        {opp['prod']}
-                    </h3>
-                    
-                    <div style="font-size: 14px; color: #333; line-height: 2;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>📌 <b>المطلوب:</b></span>
-                            <span style="color: #4F008C; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['needed_units']}</span> Values</span>
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>🎯 <b>الشريحة القادمة:</b></span>
-                            <span style="font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['target_tier']}</span>%</span>
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>💰 <b>الزيادة بالعمولة:</b></span>
-                            <span style="color: #28A745; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">+{opp['extra_kd']:.2f}</span> د.ك</span>
-                        </div>
-                        
-                        <div style="margin-top: 12px; background: #F8F9FA; padding: 10px; border-radius: 8px; border: 1px dashed #E2D1F0; display: flex; justify-content: space-between; align-items: center;">
-                            <span>⚡ <b>لكل Value واحدة:</b></span>
-                            <span style="color: #FF007A; font-weight: 800; font-size: 15px;"><span style="unicode-bidi: embed; direction: ltr;">{opp['roi_per_value']:.2f}</span> د.ك</span>
-                        </div>
-                    </div>
+                <div class="priority-card">
+                    <span class="priority-rank">{rank_label}</span>
+                    <h4 style="margin: 5px 0; color: #4F008C;">{opp['prod']}</h4>
+                    <p style="margin: 0; font-size: 13px; color: #555;">
+                        • تحتاج لبيع: <b>{opp['needed_units']} ڤاليو</b><br>
+                        • الشريحة القادمة: <b>{opp['target_tier']}%</b><br>
+                        • الزيادة بالعمولة: <b style="color: #28A745;">+{opp['extra_kd']:.2f} KD</b><br>
+                        • قيمة الـ Value الواحدة: <b>{opp['roi_per_value']:.2f} KD/value</b>
+                    </p>
                 </div>
             """, unsafe_allow_html=True)
 else:
-    st.info("🌟 **أنت حالياً في أعلى شريحة عمولة ممكنة لجميع المنتجات.**")
+    st.info("🌟 **أنت حالياً في أعلى شريحة ممكنة لجميع المنتجات!**")
 
 # Daily Tracker
 st.markdown("---")
@@ -497,7 +470,7 @@ if min_weighted_ach < 0.75:
             ach = achieved_map[prod]
             needed_raw = (0.75 - total_kpi_weight) / 0.8
             needed_units = max(1, int(needed_raw * tgt) - ach + 1)
-            weak_details.append(f"<b>{prod}</b>: تحتاج إلى <b>{needed_units} Values</b>")
+            weak_details.append(f"<b>{prod}</b>: تحتاج إلى <b>{needed_units} ڤاليو</b>")
 
     weak_text_ar = "<br>• ".join(weak_details)
     weak_text_en = ", ".join([f"{p}" for p in weak_details])
@@ -512,7 +485,7 @@ if min_weighted_ach < 0.75:
         insights.append({
             "style": "insight-error",
             "en": f"🔴 <b>Ineligible Status:</b> You need to achieve the following values to reach the minimum payout threshold (75%):<br>• {weak_text_en}",
-            "ar": f"🔴 <b>تنبيه عدم الاستحقاق (0 د.ك):</b> أنت أقل من 75%. تحتاج لتحقيق الـ Values التالية للوصول للحد الأدنى للعمولة:<br>• {weak_text_ar}"
+            "ar": f"🔴 <b>تنبيه عدم الاستحقاق (0 KD):</b> أنت أقل من 75%. تحتاج لتحقيق الـ Values التالية للوصول للحد الأدنى للعمولة:<br>• {weak_text_ar}"
         })
 
 failed_kpi_details = []
