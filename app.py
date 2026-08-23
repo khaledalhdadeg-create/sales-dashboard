@@ -385,7 +385,7 @@ for prod, weight in weighted_ach.items():
                 extra_kd = next_tier_payout - current_earned
 
                 if needed_units > 0 and extra_kd > 0:
-                    roi_per_value = extra_kd / needed_units  # عائد كل value واحدة
+                    roi_per_value = extra_kd / needed_units
                     priority_opportunities.append({
                         "prod": prod,
                         "needed_units": needed_units,
@@ -395,12 +395,11 @@ for prod, weight in weighted_ach.items():
                     })
                 break
 
-# فرز الفرص حسب أعلى عائد لكل value
 priority_opportunities.sort(key=lambda x: x["roi_per_value"], reverse=True)
 
 if priority_opportunities:
     p_cols = st.columns(min(3, len(priority_opportunities)))
-    for idx, opp in enumerate(priority_opportunities[:3]):  # عرض أفضل 3 أولويات
+    for idx, opp in enumerate(priority_opportunities[:3]):
         rank_label = f"الأولوية #{idx+1} 🏆" if idx == 0 else f"الأولوية #{idx+1}"
         with p_cols[idx]:
             st.markdown(f"""
@@ -456,11 +455,25 @@ kpi_data = [
 ]
 st.table(kpi_data)
 
-# Smart Sales Insights & Advice
+# Smart Sales Insights & Advice (Including Threshold Jump Warning)
 st.markdown("---")
 st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتنبيهات الذكية بالأرقام")
 
 insights = []
+
+# تنبيه الفجوة الحرجة (Threshold Jump Warning): الفحص إذا كان الموظف على بعد وحدة واحدة فقط (needed_units == 1)
+critical_jumps = []
+for opp in priority_opportunities:
+    if opp["needed_units"] == 1:
+        critical_jumps.append(f"<b>{opp['prod']}</b> للانتقال إلى شريحة <b>{opp['target_tier']}%</b> (زيادة متوقعة: <span style='color:#28A745; font-weight:bold;'>+{opp['extra_kd']:.2f} KD</span>)")
+
+if critical_jumps:
+    jumps_text = "<br>• ".join(critical_jumps)
+    insights.append({
+        "style": "insight-warning",
+        "en": f"🚨 <b>THRESHOLD JUMP ALERT!</b> You are only <b>1 unit away</b> from a major tier upgrade on:<br>• {jumps_text}. Close this sale immediately to maximize your commission!",
+        "ar": f"🚨 <b>تنبيه قفزة الشرائح (فجوة وحدة واحدة):</b> أنت على بعد <b>بيع وحدة واحدة فقط (1 Value)</b> للانتقال لشريحة أعلى في:<br>• {jumps_text}. أنجز هذه البيعة فوراً لتعظيم عمولتك!"
+    })
 
 if min_weighted_ach < 0.75:
     weak_details = []
