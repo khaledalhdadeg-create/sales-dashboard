@@ -6,7 +6,7 @@ from datetime import datetime
 
 # Page Configuration
 st.set_page_config(
-    page_title="stc Sales Incentive Calculator", 
+    page_title="stc Sales Incentive Calculator - The Avenues", 
     layout="wide", 
     page_icon="📱",
     initial_sidebar_state="collapsed"
@@ -103,6 +103,16 @@ st.markdown("""
         padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(79,0,140,0.05);
     }
 
+    /* Pacing Gauge Cards Style */
+    .pacing-card {
+        background: #FFFFFF; border: 1px solid #E2D1F0; border-radius: 12px;
+        padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        margin-bottom: 10px;
+    }
+    .pacing-on-track { border-top: 5px solid #28A745; }
+    .pacing-lagging { border-top: 5px solid #DC3545; }
+    .pacing-ahead { border-top: 5px solid #17A2B8; }
+
     /* Custom Progress Bar Style */
     .progress-wrapper {
         background-color: #E9ECEF;
@@ -156,7 +166,7 @@ st.markdown("""
     <div class="stc-header">
         <div>
             <h1>stc | Sales Incentive Calculator</h1>
-            <p>Interactive commission & bonus calculation dashboard</p>
+            <p>Interactive commission & bonus dashboard — فرع الأڤنيوز (The Avenues)</p>
         </div>
         <div class="stc-badge">Sales Incentive</div>
     </div>
@@ -417,16 +427,21 @@ if priority_opportunities:
 else:
     st.info("🌟 **أنت حالياً في أعلى شريحة ممكنة لجميع المنتجات!**")
 
-# Daily Tracker
+# -------------------------------------------------------------
+# مؤشر سرعة الإنجاز مقابل الوقت (Pacing & Velocity Gauge) الجديد
+# -------------------------------------------------------------
 st.markdown("---")
-st.markdown("### 📈 Daily Target Tracker")
+st.markdown("### ⏱️ Pacing & Velocity Gauge | مؤشر سرعة الإنجاز مقابل الوقت")
+
 now = datetime.now()
 current_day = now.day
 total_days = calendar.monthrange(now.year, now.month)[1]
 days_remaining = max(1, total_days - current_day)
+time_elapsed_pct = current_day / total_days
 
-st.info(f"📅 **Today:** Day {current_day} of {total_days} ({now.strftime('%B %Y')}) | **Days Remaining:** {days_remaining} days")
+st.info(f"📅 **الوضع الزمني للشهر:** اليوم **{current_day}** من أصل **{total_days}** يوم ({now.strftime('%B %Y')}) — نسبة الوقت المنقضي من الشهر: **{time_elapsed_pct*100:.1f}%**")
 
+pacing_cols = st.columns(5)
 products_tracker = [
     ("GA Voice", ach_ga_voice, target_ga_voice),
     ("GA Data", ach_ga_data, target_ga_data),
@@ -435,14 +450,37 @@ products_tracker = [
     ("Zeed", ach_zeed, target_zeed),
 ]
 
-tracker_cols = st.columns(5)
 for idx, (prod_name, ach, tgt) in enumerate(products_tracker):
+    ach_pct = (ach / tgt) if tgt > 0 else 0
+    # الفرق بين نسبة الإنجاز الفعلية ونسبة الوقت المنقضي
+    pacing_diff = ach_pct - time_elapsed_pct
+    
+    if pacing_diff >= 0.05:
+        status_class = "pacing-ahead"
+        status_text = "🚀 متقدم عن الوقت"
+        status_color = "#17A2B8"
+    elif pacing_diff >= -0.05:
+        status_class = "pacing-on-track"
+        status_text = "✅ مسار مثالي"
+        status_color = "#28A745"
+    else:
+        status_class = "pacing-lagging"
+        status_text = "⚠️ متأخر عن الخطة"
+        status_color = "#DC3545"
+        
     rem_needed = max(0, tgt - ach)
     daily_req = rem_needed / days_remaining
-    with tracker_cols[idx]:
-        st.markdown(f"**{prod_name}**")
-        st.caption(f"Remaining: {rem_needed} units")
-        st.metric("Needed / Day", f"{daily_req:.1f}")
+
+    with pacing_cols[idx]:
+        st.markdown(f"""
+            <div class="pacing-card {status_class}">
+                <h4 style="margin: 0; color: #4F008C; font-size: 15px;">{prod_name}</h4>
+                <p style="margin: 4px 0; font-size: 12px; color: #666;">الإنجاز: <b>{ach_pct*100:.1f}%</b></p>
+                <p style="margin: 2px 0; font-size: 12px; color: {status_color}; font-weight: bold;">{status_text}</p>
+                <hr style="margin: 6px 0; border: none; border-top: 1px solid #eee;">
+                <p style="margin: 0; font-size: 11px; color: #555;">المطلوب يومياً:<br><b style="font-size: 14px; color: #333;">{daily_req:.1f} وحدة/يوم</b></p>
+            </div>
+        """, unsafe_allow_html=True)
 
 # KPI Breakdown
 st.markdown("---")
@@ -461,7 +499,7 @@ st.markdown("### 💡 Smart Sales Insights & Advice | النصائح والتن�
 
 insights = []
 
-# تنبيه الفجوة الحرجة (Threshold Jump Warning): الفحص إذا كان الموظف على بعد وحدة واحدة فقط (needed_units == 1)
+# تنبيه الفجوة الحرجة (Threshold Jump Warning)
 critical_jumps = []
 for opp in priority_opportunities:
     if opp["needed_units"] == 1:
@@ -473,6 +511,21 @@ if critical_jumps:
         "style": "insight-warning",
         "en": f"🚨 <b>THRESHOLD JUMP ALERT!</b> You are only <b>1 unit away</b> from a major tier upgrade on:<br>• {jumps_text}. Close this sale immediately to maximize your commission!",
         "ar": f"🚨 <b>تنبيه قفزة الشرائح (فجوة وحدة واحدة):</b> أنت على بعد <b>بيع وحدة واحدة فقط (1 Value)</b> للانتقال لشريحة أعلى في:<br>• {jumps_text}. أنجز هذه البيعة فوراً لتعظيم عمولتك!"
+    })
+
+# تنبيهات السرعة الزمنية (Pacing Warning)
+lagging_prods = []
+for prod_name, ach, tgt in products_tracker:
+    ach_pct = (ach / tgt) if tgt > 0 else 0
+    if ach_pct < (time_elapsed_pct - 0.05):
+        lagging_prods.append(f"<b>{prod_name}</b> (معدل الإنجاز {ach_pct*100:.1f}% مقابل مرور {(time_elapsed_pct)*100:.1f}% من الشهر)")
+
+if lagging_prods:
+    lagging_text = "<br>• ".join(lagging_prods)
+    insights.append({
+        "style": "insight-error",
+        "en": f"⚠️ <b>Velocity Warning:</b> The following products are lagging behind the monthly time pace. Consider increasing daily efforts:<br>• " + "<br>• ".join([p.split('(')[0] for p in lagging_prods]),
+        "ar": f"⚠️ <b>تنبيه سرعة الإنجاز (Pacing):</b> المنتجات التالية تسير بمعدل أبطأ من الوقت المنقضي من الشهر، وتتطلب تكثيف الجهود:<br>• {lagging_text}"
     })
 
 if min_weighted_ach < 0.75:
@@ -531,7 +584,7 @@ html_report = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>stc Sales Incentive Report</title>
+    <title>stc Sales Incentive Report - The Avenues</title>
     <style>
         body {{ font-family: Arial, sans-serif; padding: 30px; background: #fff; color: #333; }}
         .header {{ background: #4F008C; color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }}
@@ -548,7 +601,7 @@ html_report = f"""<!DOCTYPE html>
         🖨️ Save as PDF / Print Report
     </button>
     <div class="header">
-        <h1>stc Sales Incentive Performance Report</h1>
+        <h1>stc Sales Incentive Performance Report (The Avenues)</h1>
         <p>Generated Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
     </div>
     
@@ -582,7 +635,7 @@ with exp_col2:
     st.download_button(
         label="📥 Download PDF Report",
         data=html_report,
-        file_name=f"stc_Incentive_Report_{datetime.now().strftime('%Y_%m_%d')}.html",
+        file_name=f"stc_Incentive_Report_Avenues_{datetime.now().strftime('%Y_%m_%d')}.html",
         mime="text/html",
         use_container_width=True
     )
