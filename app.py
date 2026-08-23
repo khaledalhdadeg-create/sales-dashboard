@@ -60,38 +60,30 @@ if priority_opportunities:
                     margin-bottom: 15px;
                     box-shadow: 0 4px 15px rgba(0,0,0,0.04);
                     direction: rtl;
-                    text-align: right;
-                    font-family: 'Inter', sans-serif;">
+                    text-align: right;">
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <span style="background: {border_color}; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">
                             {rank_badge}
                         </span>
                     </div>
                     
-                    <h3 style="margin: 8px 0 14px 0; color: #4F008C; font-size: 20px; font-weight: 800; text-align: right;">
+                    <h3 style="margin: 8px 0 14px 0; color: #4F008C; font-size: 20px; font-weight: 800;">
                         {opp['prod']}
                     </h3>
                     
-                    <div style="font-size: 14px; color: #333; line-height: 2;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>📌 <b>المطلوب:</b></span>
-                            <span style="color: #4F008C; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['needed_units']}</span> Values</span>
+                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                        <div style="margin-bottom: 6px;">
+                            📌 <b>المطلوب:</b> <span style="color: #4F008C; font-weight: bold;">{opp['needed_units']}</span> Values
                         </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>🎯 <b>الشريحة القادمة:</b></span>
-                            <span style="font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">{opp['target_tier']}</span>%</span>
+                        <div style="margin-bottom: 6px;">
+                            🎯 <b>الشريحة القادمة:</b> <b>{opp['target_tier']}%</b>
                         </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0E6F7; padding-bottom: 4px; margin-bottom: 6px;">
-                            <span>💰 <b>الزيادة بالعمولة:</b></span>
-                            <span style="color: #28A745; font-weight: bold;"><span style="unicode-bidi: embed; direction: ltr;">+{opp['extra_kd']:.2f}</span> د.ك</span>
+                        <div style="margin-bottom: 6px;">
+                            💰 <b>الزيادة بالعمولة:</b> <span style="color: #28A745; font-weight: bold;">+{opp['extra_kd']:.2f} د.ك</span>
                         </div>
-                        
-                        <div style="margin-top: 12px; background: #F8F9FA; padding: 10px; border-radius: 8px; border: 1px dashed #E2D1F0; display: flex; justify-content: space-between; align-items: center;">
-                            <span>⚡ <b>لكل Value واحدة:</b></span>
-                            <span style="color: #FF007A; font-weight: 800; font-size: 15px;"><span style="unicode-bidi: embed; direction: ltr;">{opp['roi_per_value']:.2f}</span> د.ك</span>
+                        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #E2D1F0; background: #F8F9FA; padding: 8px; border-radius: 8px; text-align: center;">
+                            ⚡ <b>لكل Value واحدة:</b> <span style="color: #FF007A; font-weight: 800;">{opp['roi_per_value']:.2f} د.ك</span>
                         </div>
                     </div>
                 </div>
